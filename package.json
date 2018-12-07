@@ -1,0 +1,14 @@
+{
+  "name": "my-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot!",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node .",
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "authors": ["darren96", "chuaes", "zulq9"],
+  "license": "ISC" 
+}
