@@ -9,4 +9,3 @@ We plan to provide user the abilities to the user via the bot such as:
 - and many more!
 
 This project is currently under pre-development phase. Stay tune for further information.
-ß
