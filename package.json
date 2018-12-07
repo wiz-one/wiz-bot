@@ -1,15 +1,15 @@
 {
   "name": "wiz-bot",
-  "dependencies": {
-    "discord.js": "discordjs/discord.js",
-    "express": "^4.16.4"
-  },
   "version": "1.0.0",
   "description": "A Discord bot!",
   "main": "bot.js",
+  "dependencies": {
+    "discord.js": "github:discordjs/discord.js",
+    "express": "^4.16.4"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
   "keywords": [],
