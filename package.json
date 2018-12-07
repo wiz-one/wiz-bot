@@ -1,7 +1,8 @@
 {
   "name": "wiz-bot",
   "dependencies": {
-    "discord.js": "discordjs/discord.js"
+    "discord.js": "github:discordjs/discord.js",
+    "express": "^4.16.4"
   },
   "version": "1.0.0",
   "description": "A Discord bot!",
@@ -12,6 +13,10 @@
     "lint": "eslint ."
   },
   "keywords": [],
-  "authors": ["darren96", "chuaes", "zulq9"],
+  "authors": [
+    "darren96",
+    "chuaes",
+    "zulq9"
+  ],
   "license": ""
 }
