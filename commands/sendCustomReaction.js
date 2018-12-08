@@ -20,11 +20,11 @@ module.exports = (client = Discord.Client) => {
 
     if (!args.length) {
       returnMessage = `You didn't provide any arguments, ${message.author}!`;
-    } else if (args[0] === "zul") {
+    } else if (args[1] === "zul") {
       returnMessage = "https://gfycat.com/DrearyMiniatureArcherfish"; 
-    } else if (args[0] === "darren") {
+    } else if (args[1] === "darren") {
       returnMessage = "https://imgur.com/9baOIQ3"; 
-    } else if (args[0] === "ces") {
+    } else if (args[1] === "ces") {
       returnMessage = "https://gfycat.com/HeavySillyBlackbuck";
     } else {
       returnMessage = "https://gfycat.com/KlutzyLikelyFlounder";
