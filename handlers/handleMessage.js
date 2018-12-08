@@ -11,14 +11,11 @@ module.exports = (client = Discord.Client) => {
       return;
     }
 
-		let messageArray = message.content.split(" ");
-    let command = messageArray[0];
-    let args = messageArray.slice(1);
-
-    command = command.slice(prefix.length).toLowerCase();
+		const args = message.content.slice(prefix.length).split(' ');
+    const command = args.shift().toLowerCase();
     
     //TODO command list
-    switch(args[0]) {
+    switch(command) {
       case "scr":
         sendCustomReaction(message);
         break;
