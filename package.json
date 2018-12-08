@@ -4,8 +4,7 @@
   "description": "A Discord bot!",
   "main": "bot.js",
   "dependencies": {
-    "discord.js": "github:discordjs/discord.js",
-    "express": "^4.16.4"
+    
   },
   "scripts": {
     "start": "node .",
