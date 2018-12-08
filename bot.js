@@ -8,15 +8,14 @@ const client = new Discord.Client();
 const server = express()
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
+require("./handlers/handleMessage.js")(client);
+
 client.once('ready', () => {
     console.log('Ready!');
 });
 
 client.on('message', message => {
-  if (message.content === `${prefix}ping`) {
-    // send back "Pong." to the channel the message was sent in
-    message.channel.send('Pong.');
-  }
+  handleMessage(message);
 });
 
 client.login(token);
