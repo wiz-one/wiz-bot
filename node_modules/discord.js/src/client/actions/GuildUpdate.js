@@ -1,7 +1,6 @@
-'use strict';
-
 const Action = require('./Action');
-const { Events } = require('../../util/Constants');
+const Constants = require('../../util/Constants');
+const Util = require('../../util/Util');
 
 class GuildUpdateAction extends Action {
   handle(data) {
@@ -9,16 +8,11 @@ class GuildUpdateAction extends Action {
 
     const guild = client.guilds.get(data.id);
     if (guild) {
-      const old = guild._update(data);
-      /**
-       * Emitted whenever a guild is updated - e.g. name change.
-       * @event Client#guildUpdate
-       * @param {Guild} oldGuild The guild before the update
-       * @param {Guild} newGuild The guild after the update
-       */
-      client.emit(Events.GUILD_UPDATE, old, guild);
+      const oldGuild = Util.cloneObject(guild);
+      guild.setup(data);
+      client.emit(Constants.Events.GUILD_UPDATE, oldGuild, guild);
       return {
-        old,
+        old: oldGuild,
         updated: guild,
       };
     }
@@ -30,5 +24,11 @@ class GuildUpdateAction extends Action {
   }
 }
 
+/**
+ * Emitted whenever a guild is updated - e.g. name change.
+ * @event Client#guildUpdate
+ * @param {Guild} oldGuild The guild before the update
+ * @param {Guild} newGuild The guild after the update
+ */
 
 module.exports = GuildUpdateAction;
