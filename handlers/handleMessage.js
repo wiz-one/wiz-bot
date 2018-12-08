@@ -3,8 +3,10 @@ const { prefix, token } = require("./../config.json");
 
 module.exports = (client = Discord.Client) => {
   require("../commands/sendCustomReaction.js")(client);
-  
+
   handleMessage = async function handleMessage(message) {
+    console.log("Handling messages: " + message.content);
+    
     if (message.content.startsWith === `${prefix}`) {
       return;
     }

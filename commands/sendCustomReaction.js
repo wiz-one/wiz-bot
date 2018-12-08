@@ -1,4 +1,5 @@
 const Discord = require("discord.js");
+const { prefix, token } = require("./../config.json");
 
 module.exports = (client = Discord.Client) => {
   sendCustomReaction = async function sendCustomReaction(message) {
@@ -14,6 +15,8 @@ module.exports = (client = Discord.Client) => {
 
     const args = message.content.slice(prefix.length).split(' ');
     let returnMessage = null;
+
+    console.log("Argument received: " + args[0]);
 
     if (!args.length) {
       returnMessage = `You didn't provide any arguments, ${message.author}!`;
