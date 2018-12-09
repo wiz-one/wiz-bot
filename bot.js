@@ -12,6 +12,7 @@ require("./handlers/handleMessage.js")(client);
 
 client.once('ready', () => {
     console.log('Ready!');
+    client.user.setActivity('https://github.com/darren96/wiz-bot', {type: "PLAYING"});
 });
 
 client.on('message', message => {

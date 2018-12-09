@@ -16,7 +16,7 @@ module.exports = (client = Discord.Client) => {
     const args = message.content.slice(prefix.length).split(' ');
     let returnMessage = null;
 
-    console.log("Argument received: " + args[0]);
+    console.log("Argument received: " + args[1]);
 
     if (!args.length) {
       returnMessage = `You didn't provide any arguments, ${message.author}!`;
