@@ -9,6 +9,7 @@ const server = express()
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
 require("./handlers/handleMessage.js")(client);
+require("newrelic");
 
 client.once('ready', () => {
     console.log('Ready!');
