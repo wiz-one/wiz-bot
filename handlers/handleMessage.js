@@ -6,7 +6,7 @@ const client = new Discord.Client();
 client.commands = new Discord.Collection();
 
 //Get all the command name in the command folder and store in commandFiles array
-const commandFiles = fs.readdirSync('./../commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 //for each of the file in commandFiles, add it to client.commands as a map collection
 for (const file of commandFiles) {
@@ -15,7 +15,7 @@ for (const file of commandFiles) {
 }
 
 module.exports = {
-  handleMessage = async function handleMessage(message) {
+  async handleMessage(message) {
     console.log("Handling messages: " + message.content);
     
     if (!message.content.startsWith(prefix) || message.author.bot || message.system || message.channel.type === 'dm') {
