@@ -1,4 +1,5 @@
 {
   "prefix": "/",
-  "token": "NTE5OTAyNzM4MzkwMzE5MTI2.DutbUw.GuJC9aRHgeO7W2xnggdMlCYRlo8"
+  "token": "NTE5OTAyNzM4MzkwMzE5MTI2.DutbUw.GuJC9aRHgeO7W2xnggdMlCYRlo8",
+  "reactionFilePath": "./data/reactions.json"
 }
