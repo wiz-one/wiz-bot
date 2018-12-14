@@ -1,9 +1,10 @@
 const Discord = require("discord.js");
-const { prefix, token } = require("./../config.json");
+const { prefix } = require("./../config.json");
 const cooldowns = new Discord.Collection();
 
-module.exports = {
-  async handleMessage(message) {
+module.exports = (client) => {
+
+  handleMessage = async function handleMessage(message) {
     console.log("Handling messages: " + message.content);
     
     if (!message.content.startsWith(prefix) || message.author.bot || message.system) {

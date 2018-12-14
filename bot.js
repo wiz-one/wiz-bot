@@ -9,7 +9,7 @@ const client = new Discord.Client();
 const server = express()
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
-const hm = require("./handlers/handleMessage.js");
+require("./handlers/handleMessage.js")(client);
 require("./newrelic");
 
 client.once('ready', () => {
@@ -18,7 +18,6 @@ client.once('ready', () => {
 });
 
 client.commands = new Discord.Collection();
-const cooldowns = new Discord.Collection();
 
 //Get all the command name in the command folder and store in commandFiles array
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -32,7 +31,7 @@ console.log("Successfully initialize commands");
 
 
 client.on('message', message => {
-  hm.handleMessage(message);
+  handleMessage(message);
 });
 
 client.login(token);
