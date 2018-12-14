@@ -6,7 +6,7 @@ module.exports = (bot = Discord.Client) => {
   addCustomReaction = async function addCustomReaction(message) {
     const args = message.content.slice(prefix.length).split(' ');
 
-    console.log("Argument received: " + args[1]);
+    console.log("Arguments received: " + args.join(" "));
 
     if (!args.length) {
       return message.channel.reply("You didn't provide any arguments");
@@ -35,8 +35,6 @@ function formEmbedMessage(trigger, reaction, author) {
   const embedMessage = new Discord.RichEmbed()
     .setColor('#da004e')
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
-    .setDescription('Some description here')
-    .setThumbnail('https://i.imgur.com/wSTFkRM.png')
     .addField('Custom Reaction Added', 'Some value here')
     .addField('Trigger', trigger)
     .addField('Response', reaction)
@@ -45,14 +43,26 @@ function formEmbedMessage(trigger, reaction, author) {
 }
 
 function save(reactionObj) {
-  fs.readFile(reactionFilePath, 'utf8', function readFileCallback(err, data){
+  var file = __dirname + "/../" + reactionFilePath;
+  console.log(file);
+  fs.readFile(file, 'utf8', function readFileCallback(err, data){
     if (err){
         console.log(err);
         throw err;
     }
-    var obj = JSON.parse(data);
-    obj.table.push(reactionObj);
-    json = JSON.stringify(obj);
-    fs.writeFile(reactionFilePath, json, 'utf8', callback); // write it back 
+    obj = JSON.parse(data);
+    if (obj.length > 0) {
+      obj.push(reactionObj);
+    } else {
+      obj[0] = reactionObj;
+    }
+    
+    var json = JSON.stringify(obj);
+    fs.writeFile(file, json, 'utf8', function callback(err, data) {
+      if (err){
+        console.log(err);
+        throw err;
+      }
+    });
 });
 }
