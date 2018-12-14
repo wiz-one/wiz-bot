@@ -17,7 +17,7 @@ module.exports = (bot = Discord.Client) => {
     var reaction = args[2];
     var author = message.author;
     var obj = formJsonObj(trigger, reaction);
-    var message = formEmbedMessage(trigger, reaction, author);
+    var embedMessage = formEmbedMessage(trigger, reaction, author);
     save(obj);
 
     return message.channel.send(embedMessage);
