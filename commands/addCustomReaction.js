@@ -2,8 +2,10 @@ const Discord = require("discord.js");
 const fs = require("fs");
 const { prefix, reactionFilePath } = require("../config.json");
 
-module.exports = (bot = Discord.Client) => {
-  addCustomReaction = async function addCustomReaction(message) {
+module.exports = {
+  name: 'acr',
+  description: 'Add custom reaction according to argument input',
+  async execute(message, args) {
     const args = message.content.slice(prefix.length).split(' ');
 
     console.log("Arguments received: " + args.join(" "));

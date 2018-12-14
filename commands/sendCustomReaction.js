@@ -1,31 +1,20 @@
-const Discord = require("discord.js");
-const { prefix, token } = require("./../config.json");
+module.exports = {
+  name: 'scr',
+  description: 'Send custom reaction according to argument input',
+  async execute(message, args) {
 
-module.exports = (client = Discord.Client) => {
-  sendCustomReaction = async function sendCustomReaction(message) {
-    if (message.system) {
-      return;
-    }
-    if (message.author.bot) {
-      return;
-    }
-    if (message.channel.type === 'dm') {
-      return;
-    }
-
-    const args = message.content.slice(prefix.length).split(' ');
     let returnMessage = null;
 
-    console.log("Argument received: " + args[1]);
+    console.log("Argument received: " + args[0]);
 
     if (!args.length) {
       returnMessage = `You didn't provide any arguments, ${message.author}!`;
-    } else if (args[1] === "zul") {
+    } else if (args[0] === "zul") {
       returnMessage = "https://gfycat.com/DrearyMiniatureArcherfish"; 
-    } else if (args[1] === "darren") {
+    } else if (args[0] === "darren") {
       returnMessage = "https://imgur.com/9baOIQ3"; 
-    } else if (args[1] === "ces") {
-      returnMessage = "https://gfycat.com/HeavySillyBlackbuck";
+    } else if (args[0] === "ces") {
+      returnMessage = "https://gfycat.com/wickedsickgalapagosdove";
     } else {
       returnMessage = "https://gfycat.com/KlutzyLikelyFlounder";
     }

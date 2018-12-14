@@ -8,8 +8,8 @@ const client = new Discord.Client();
 const server = express()
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
 
-require("newrelic");
-require("./handlers/handleMessage.js")(client);
+require("./newrelic");
+const hm = require("./handlers/handleMessage.js");
 
 client.once('ready', () => {
     console.log('Ready!');
@@ -17,7 +17,7 @@ client.once('ready', () => {
 });
 
 client.on('message', message => {
-  handleMessage(message);
+  hm.handleMessage(message);
 });
 
 client.login(token);
