@@ -14,7 +14,7 @@ module.exports = {
     } else if (args[0] === "darren") {
       returnMessage = "https://imgur.com/9baOIQ3"; 
     } else if (args[0] === "ces") {
-      returnMessage = "https://gfycat.com/HeavySillyBlackbuck";
+      returnMessage = "https://gfycat.com/wickedsickgalapagosdove";
     } else {
       returnMessage = "https://gfycat.com/KlutzyLikelyFlounder";
     }
