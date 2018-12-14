@@ -1,19 +1,6 @@
-const fs = require('fs');
 const Discord = require("discord.js");
 const { prefix, token } = require("./../config.json");
-
-const client = new Discord.Client();
-client.commands = new Discord.Collection();
 const cooldowns = new Discord.Collection();
-
-//Get all the command name in the command folder and store in commandFiles array
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
-//for each of the file in commandFiles, add it to client.commands as a map collection
-for (const file of commandFiles) {
-  const command = require(`./../commands/${file}`);
-  client.commands.set(command.name, command);
-}
 
 module.exports = {
   async handleMessage(message) {
@@ -26,8 +13,8 @@ module.exports = {
     const args = message.content.slice(prefix.length).split(/ +/);
     const commandName = args.shift().toLowerCase();
 
-    const command = client.commands.get(commandName)
-    || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+    const command = message.client.commands.get(commandName)
+    || message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
     if (!command) return;
 
