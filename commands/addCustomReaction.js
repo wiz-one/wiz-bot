@@ -1,11 +1,10 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const { reactionFilePath } = require("../config.json");
+const { prefix, reactionFilePath } = require("../config.json");
 
 module.exports = (bot = Discord.Client) => {
   addCustomReaction = async function addCustomReaction(message) {
     const args = message.content.slice(prefix.length).split(' ');
-    let returnMessage = null;
 
     console.log("Argument received: " + args[1]);
 
