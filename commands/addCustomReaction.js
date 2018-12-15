@@ -1,12 +1,10 @@
-const Discord = require("discord.js");
 const fs = require("fs");
-const { prefix, reactionFilePath } = require("../config.json");
+const { reactionFilePath } = require("../config.json");
 
 module.exports = {
   name: 'acr',
   description: 'Add custom reaction according to argument input',
   async execute(message, args) {
-    const args = message.content.slice(prefix.length).split(' ');
 
     console.log("Arguments received: " + args.join(" "));
 
@@ -14,8 +12,8 @@ module.exports = {
       return message.channel.reply("You didn't provide any arguments");
     }
 
-    var trigger = args[1];
-    var reaction = args[2];
+    var trigger = args[0];
+    var reaction = args[1];
     var author = message.author;
     var obj = formJsonObj(trigger, reaction);
     var embedMessage = formEmbedMessage(trigger, reaction, author);
@@ -46,18 +44,13 @@ function formEmbedMessage(trigger, reaction, author) {
 
 function save(reactionObj) {
   var file = __dirname + "/../" + reactionFilePath;
-  console.log(file);
   fs.readFile(file, 'utf8', function readFileCallback(err, data){
     if (err){
         console.log(err);
         throw err;
     }
     obj = JSON.parse(data);
-    if (obj.length > 0) {
-      obj.push(reactionObj);
-    } else {
-      obj[0] = reactionObj;
-    }
+    obj.reactions.push(reactionObj);
     
     var json = JSON.stringify(obj);
     fs.writeFile(file, json, 'utf8', function callback(err, data) {
@@ -66,5 +59,5 @@ function save(reactionObj) {
         throw err;
       }
     });
-});
+  });
 }
