@@ -1,0 +1,64 @@
+Command files are stored in https://github.com/wiz-one/wiz-bot/tree/master/commands
+
+# Command File Format
+### **Attributes for command:**
+
+_Mandatory attributes:_
+
+- **name** : String +
+Name of the command. +
+E.g `name: 'ping'`
+- **execute(message,args)** +
+The method to be run upon execution. +
+E.g `execute(message, args) {
+        message.channel.send('Pong.');
+    },`
+
+_Optional attributes:_
+
+- **description** : String +
+E.g `description: 'The bot will response with a Pong. upon receiving ping'` 
+- **aliases** : String[] +
+Aliases for the command that will respond in the same manner. +
+E.g  `aliases: ['pang']`
+- **usage** : String +
+Explains the user the usage of the command by providing example. +
+E.g the command `!kick` will have usage as `usage: '<user>'`. +
+The message reply will append the command name and send it as 
+`The proper usage would be: !kick <user>`
+- **args** : Boolean +
+Set to true if the command requires argument +
+E.g `args: true`
+
+- **cooldown**: Int +
+The duration for how long a user will have to wait before entering the command again. +
+E.g `cooldown: 5` +
+> Default value if not declared is 3 seconds
+
+- **dm**: Boolean +
+Set to true if the command allows user to get response in direct message channel +
+E.g `dm: true` +
+> Default value for boolean if not declared is false
+
+
+Here is an example of a command file `ping.js`
+
+[source,javascript]
+------------------
+module.exports = {
+    name: 'ping',
+    aliases: ['pang'],
+    description: 'The bot will response with a \`Pong.\` upon receiving ping',
+    cooldown: 5,
+    dm: true,
+    execute(message, args) {
+        message.channel.send('Pong.');
+    },
+};
+------------------
+
+
+
+
+
+
