@@ -8,19 +8,12 @@ module.exports = {
 
     let returnMessage = null;
 
-    console.log("Argument received: " + args[0]);
+    console.log("Argument received: " + args);
 
     if (!args.length) {
       returnMessage = `You didn't provide any arguments, ${message.author}!`;
-    } else if (args[0] === "zul") {
-      returnMessage = "https://gfycat.com/DrearyMiniatureArcherfish"; 
-    } else if (args[0] === "darren") {
-      returnMessage = "https://imgur.com/9baOIQ3"; 
-    } else if (args[0] === "ces") {
-      returnMessage = "https://gfycat.com/wickedsickgalapagosdove";
-    } else {
-      returnMessage = readReaction(args[0]);
     }
+    returnMessage = readReaction(args);
 
     return message.channel.send(returnMessage);
   }

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require("discord.js");
-const { prefix } = require("./../config.json");
+const { prefix, customReactionPrefix } = require("./../config.json");
 
 const client = new Discord.Client();
 client.commands = new Discord.Collection();
@@ -17,14 +17,21 @@ for (const file of commandFiles) {
 module.exports = {
   async handleMessage(message) {
     console.log("Handling messages: " + message.content);
+    console.log(!message.content.startsWith(customReactionPrefix));
     
-    if (!message.content.startsWith(prefix) || message.author.bot || message.system || message.channel.type === 'dm') {
+    if ((!message.content.startsWith(prefix) && !message.content.startsWith(customReactionPrefix))
+        || message.author.bot || message.system || message.channel.type === 'dm') {
+      return;
+    }
+    
+    if(message.content.startsWith(customReactionPrefix)) {
+      console.log("Handling Custom Reactions");
+      client.commands.get("scr").execute(message, message.content);
       return;
     }
 
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();
-
 
     if (!client.commands.has(command)) return;
 
