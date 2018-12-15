@@ -1,5 +1,6 @@
 module.exports = {
   name: 'scr',
+  args: true,
   description: 'Send custom reaction according to argument input',
   async execute(message, args) {
 
@@ -7,9 +8,7 @@ module.exports = {
 
     console.log("Argument received: " + args[0]);
 
-    if (!args.length) {
-      returnMessage = `You didn't provide any arguments, ${message.author}!`;
-    } else if (args[0] === "zul") {
+    if (args[0] === "zul") {
       returnMessage = "https://gfycat.com/DrearyMiniatureArcherfish"; 
     } else if (args[0] === "darren") {
       returnMessage = "https://imgur.com/9baOIQ3"; 
