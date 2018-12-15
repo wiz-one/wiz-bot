@@ -5,7 +5,7 @@ module.exports = (client = Discord.Client) => {
 
     reactionHnd = function reactionHnd(message){
 
-      if (!message.content.startsWith(customReactionPrefix) || message.author.bot || message.system) {
+      if (!message.content.startsWith(customReactionPrefix) || message.author.bot || message.system || message.channel.type === 'dm') {
         return;
       }
 
