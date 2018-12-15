@@ -1,4 +1,5 @@
-const { prefix } = require('./../config.json');
+const Discord = require('discord.js');
+const { prefix } = require('../config.json');
 
 module.exports = {
     name: 'help',
@@ -12,11 +13,17 @@ module.exports = {
         const { commands } = message.client;
 
         if (!args.length) {
-            data.push('Here\'s a list of all my commands:');
             data.push(commands.map(command => `\` ${command.name} \``).join('\n'));
             data.push(`\nYou can send \`${prefix}help [command name]\` to get info on a specific command!`);
             
-            return message.author.send(data, { split: true })
+            const dataEmbed = new Discord.RichEmbed()
+            .setColor('#000000')
+            .setTitle(`**Wiz-Bot**`)
+            .setURL('https://github.com/wiz-one/wiz-bot')
+            .setThumbnail('https://i.imgur.com/CZqkT5u.png')
+            .addField('List of all commands by Wiz-Bot', data)
+
+            return message.author.send(dataEmbed)
                 .then(() => {
                     if (message.channel.type === 'dm') return;
                     message.reply('I\'ve sent you a DM with all my commands!');
@@ -34,14 +41,16 @@ module.exports = {
             return message.reply('that\'s not a valid command!');
         }
 
-        data.push(`**Name:** ${command.name}`);
+        const dataEmbed = new Discord.RichEmbed()
+        .setColor('#ffffff')
+        .addField('Command name', command.name, true);
 
-        if (command.aliases) data.push(`**Aliases:** ${command.aliases.join(', ')}`);
-        if (command.description) data.push(`**Description:** ${command.description}`);
-        if (command.usage) data.push(`**Usage:** ${prefix}${command.name} ${command.usage}`);
+        if (command.aliases) dataEmbed.addField('Aliases',command.aliases.join('\n'),true); 
+        if (command.description) dataEmbed.addField('Description', command.description);
+        if (command.usage) dataEmbed.addField('Usage', `${prefix}${command.name} ${command.usage}`);
 
-        data.push(`**Cooldown:** ${command.cooldown || 3} second(s)`);
+        dataEmbed.addField('Cooldown', `${command.cooldown || 3} second(s)`);
 
-        message.channel.send(data, { split: true });
+        message.channel.send(dataEmbed);
     },
 };
