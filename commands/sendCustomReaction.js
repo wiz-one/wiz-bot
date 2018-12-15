@@ -3,6 +3,7 @@ const { reactionFilePath } = require("../config.json");
 
 module.exports = {
   name: 'scr',
+  args: true,
   description: 'Send custom reaction according to argument input',
   async execute(message, args) {
 
