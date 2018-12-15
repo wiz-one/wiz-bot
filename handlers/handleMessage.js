@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { prefix } = require("./../config.json");
+const { prefix, customReactionPrefix } = require("./../config.json");
 const cooldowns = new Discord.Collection();
 
 module.exports = (client) => {
@@ -7,12 +7,19 @@ module.exports = (client) => {
   handleMessage = async function handleMessage(message) {
     console.log("Handling messages: " + message.content);
     
-    if (!message.content.startsWith(prefix) || message.author.bot || message.system) {
+    if ((!message.content.startsWith(prefix) && !message.content.startsWith(customReactionPrefix))
+      || message.author.bot || message.system) {
       return;
     }
 
     const args = message.content.slice(prefix.length).split(/ +/);
     const commandName = args.shift().toLowerCase();
+
+    if(message.content.startsWith(customReactionPrefix)) {
+      console.log("Handling Custom Reactions");
+      client.commands.get("scr").execute(message, message.content);
+      return;
+    }
 
     const command = message.client.commands.get(commandName)
     || message.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
