@@ -43,7 +43,7 @@ function formEmbedMessage(trigger, reaction, author) {
   return embedMessage;
 }
 
-function save(reactionObj) {
+async function save(reactionObj) {
   var file = __dirname + "/../" + reactionFilePath;
   obj = JSON.parse(fs.readFileSync(file, 'utf8'));
   obj.reactions.push(reactionObj);
