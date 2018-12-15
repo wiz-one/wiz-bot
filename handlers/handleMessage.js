@@ -12,7 +12,7 @@ module.exports = (client = Discord.Client) => {
     console.log("Handling messages: " + message.content);
 
     adblocker(message);
-    reaction(message);
+    reactionHnd(message);
     command(message);
   };
 };
