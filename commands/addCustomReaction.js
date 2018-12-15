@@ -1,4 +1,5 @@
 const fs = require("fs");
+const Discord = require("discord.js");
 const { reactionFilePath } = require("../config.json");
 
 module.exports = {
@@ -44,20 +45,8 @@ function formEmbedMessage(trigger, reaction, author) {
 
 function save(reactionObj) {
   var file = __dirname + "/../" + reactionFilePath;
-  fs.readFile(file, 'utf8', function readFileCallback(err, data){
-    if (err){
-        console.log(err);
-        throw err;
-    }
-    obj = JSON.parse(data);
-    obj.reactions.push(reactionObj);
-    
-    var json = JSON.stringify(obj);
-    fs.writeFile(file, json, 'utf8', function callback(err, data) {
-      if (err){
-        console.log(err);
-        throw err;
-      }
-    });
-  });
+  obj = JSON.parse(fs.readFileSync(file, 'utf8'));
+  obj.reactions.push(reactionObj);
+  json = JSON.stringify(obj);
+  fs.writeFileSync(file, json);
 }
