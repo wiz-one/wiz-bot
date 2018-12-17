@@ -1,7 +1,6 @@
 const emojis = require('emojis');
 const onlyEmoji = require('emoji-aware').onlyEmoji;
 const twemoji = require('twemoji');
-const Discord = require("discord.js");
 
 module.exports = {
   name: 'emote',
@@ -26,8 +25,7 @@ module.exports = {
     } else {
       const emoji = args[0].substr(2, args[0].length - 2).split(":");
       const emojiId = emoji[1].slice(0,emoji[1].length-1);
-
-      console.log(message.guild.emojis.get(emojiId));
+      
       if (message.guild.emojis.get(emojiId)) {
         file = customEmojiUrl + emojiId;
         message.channel.send(requestString + message.author.username + "\n" + file);
