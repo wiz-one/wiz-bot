@@ -5,19 +5,23 @@
   "main": "bot.js",
   "dependencies": {
     "discord.js": "^11.4.2",
+    "emoji-aware": "^3.0.4",
+    "emojis": "^1.0.10",
     "express": "^4.16.4",
-    "newrelic": "^4.12.0"
+    "newrelic": "^4.12.0",
+    "twemoji": "^11.2.0"
   },
   "scripts": {
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ."
   },
+  "repository": "https://github.com/wiz-one/wiz-bot",
   "keywords": [],
   "authors": [
     "darren96",
     "chuaes",
     "zulq9"
   ],
-  "license": ""
+  "license": "MIT"
 }
