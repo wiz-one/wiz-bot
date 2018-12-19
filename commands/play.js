@@ -33,11 +33,13 @@ module.exports = {
       playlist = new Array();
     }
 
-    if (dispatcher.paused) {
-      dispatcher.resume();
-    }
-
     if (dispatcher) {
+
+      if (dispatcher.paused) {
+        dispatcher.resume();
+        return message.reply('Music Resumed!');
+      }
+
       playlist.push(videoUrl);
       return ytdl.getBasicInfo(videoUrl, (err, info) => {
         if (err) {
