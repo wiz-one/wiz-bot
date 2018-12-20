@@ -6,8 +6,7 @@ module.exports = {
       message.member.voiceChannel.join().then(connection => {
         message.reply('I have successfully connected to the channel!');
       })
-      .catch(console.log)
-      
+      .catch(console.log);
     } else {
       message.reply('You need to join a voice channel first!');
     }

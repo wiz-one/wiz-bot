@@ -2,7 +2,7 @@ const express = require('express');
 const Discord = require('discord.js');
 const fs = require('fs');
 
-const { prefix, token } = require("./config.json");
+const { token } = require("./config.json");
 const PORT = process.env.PORT || 5000;
 
 const client = new Discord.Client();
@@ -14,13 +14,18 @@ require("./newrelic");
 
 client.once('ready', () => {
     console.log('Ready!');
-    client.user.setActivity('https://github.com/darren96/wiz-bot', {type: "PLAYING"});
+    client.user.setActivity('IZ*ONE', {type: "WATCHING"});
 });
 
 client.commands = new Discord.Collection();
 
 //Get all the command name in the command folder and store in commandFiles array
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+var commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+//Get all the music command name in the command/music folder and store in concatenate array
+commandFiles = commandFiles.concat(fs.readdirSync('./commands/music')
+    .filter(file => file.endsWith('.js'))
+    .map(file => "music/" + file));
 
 //for each of the file in commandFiles, add it to client.commands as a map collection
 for (const file of commandFiles) {

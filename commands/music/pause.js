@@ -1,5 +1,3 @@
-var playlist, dispatcher;
-
 module.exports = {
   name: 'pause',
   description: 'Request the bot to pause the current playing song in the voice channel.',

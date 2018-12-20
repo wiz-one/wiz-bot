@@ -1,7 +1,5 @@
 const Discord = require("discord.js");
 
-const { prefix, customReactionPrefix } = require("./../config.json");
-
 module.exports = (client = Discord.Client) => {
 
   require("./command.js")(client);

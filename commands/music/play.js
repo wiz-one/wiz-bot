@@ -1,7 +1,7 @@
 const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 const streamOptions = { seek: 0, volume: 1, bitrate: 720000 };
-var playlist, dispatcher;
+let dispatcher;
 
 module.exports = {
   name: 'play',
@@ -29,8 +29,8 @@ module.exports = {
       message.reply('I have successfully connected to the channel!');
     }
 
-    if (!playlist) {
-      playlist = new Array();
+    if (!global.playlist) {
+      global.playlist = new Array();
     }
 
     if (dispatcher) {
@@ -51,31 +51,39 @@ module.exports = {
     }
 
     play(videoUrl, message);
-
-    dispatcher.on('end', () => {
-      // The song has finished
-      if (playlist.length) {
-        nextSong = playlist.pop();
-        play(nextSong, message);
-      }
-    });
-    
-    dispatcher.on('error', e => {
-      // Catch any errors that may arise
-      console.log(e);
-    });
+  },
+  getPlaylist() {
+    return playlist;
+  },
+  setPlaylist(list) {
+    this.playlist = list;
+    console.log(this.playlist.length);
   }
 }
 
 function play(song, message) {
   const stream = ytdl(song, { quality: 'highest', filter : 'audioonly' });
-  dispatcher = connection.playStream(stream, streamOptions);
   ytdl.getBasicInfo(song, (err, info) => {
     if (err) {
       return console.log(err);
     }
     var embedMessage = formEmbedMessage(message.author, info, true);
     message.channel.send(embedMessage);
+  });
+  
+  dispatcher = connection.playStream(stream, streamOptions);
+
+  dispatcher.on('end', () => {
+    // The song has finished
+    if (global.playlist.length) {
+      nextSong = global.playlist.shift();
+      dispatcher = play(nextSong, message);
+    }
+  });
+  
+  dispatcher.on('error', e => {
+    // Catch any errors that may arise
+    console.log(e);
   });
 }
 
@@ -85,8 +93,7 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
   if (nowPlaying) {
     title = "Now Playing 🎵";
   } else {
-    title = "Song Added 🎵";
-    embedMessage.addField("Song in Queue: ", playlist.length)
+    title = "Song Added 🎶";
   }
   length_seconds = videoInfo.length_seconds;
   length = parseInt(length_seconds/60, 10) + ":" + length_seconds % 60;
@@ -98,6 +105,7 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .addField('Author: ', videoInfo.author.name)
     .addField('Length: ', length)
+    .addField("Songs in Queue: ", global.playlist.length)
     .setTimestamp();
   
   return embedMessage;
