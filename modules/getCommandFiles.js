@@ -17,8 +17,7 @@ getCommandFiles = function getCommandFiles(dir, fileTypes) {
     function walkDir(currentPath) {
       const files = fs.readdirSync(currentPath);
       for (let i in files) {
-        const curFile = path.join(currentPath, files[i]);  
-        console.log(curFile);    
+        const curFile = path.join(currentPath, files[i]);    
         if (fs.statSync(curFile).isFile() && fileTypes.indexOf(path.extname(curFile)) != -1) {
         const command = require(`./../${curFile.replace('\\','/')}`);
         cmd.set(command.name, command);
