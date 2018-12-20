@@ -22,6 +22,11 @@ module.exports = (client = Discord.Client) => {
         
 		let perms = ["ADMINISTRATOR", "MANAGE_GUILD", "VIEW_AUDIT_LOG"];
 
+		if (message.content.includes("http://bit.ly/") && message.author.bot) {
+			message.delete().catch(console.error);
+			return;
+		}
+
 		if (message.content.includes("https://discord.gg/") && !message.member.hasPermission(perms)) {
 			message.delete().catch(console.error);
 			message.reply("Please do not post discord links.").catch(console.error);
