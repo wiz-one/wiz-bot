@@ -4,8 +4,8 @@ const streamOptions = { seek: 0, volume: 1, bitrate: 720000 };
 let dispatcher;
 
 module.exports = {
-  name: 'play',
-  description: 'Request the bot to play a song in the voice channel.',
+  name: 'playtop',
+  description: 'Request the bot to play a song as the next song in the voice channel.',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {
@@ -29,9 +29,7 @@ module.exports = {
       message.reply('I have successfully connected to the channel!');
     }
 
-    if (!global.playlist) {
-      global.playlist = new Array();
-    }
+    dispatcher = message.guild.voiceConnection.dispatcher;
 
     if (dispatcher) {
 
@@ -40,7 +38,7 @@ module.exports = {
         return message.reply('Music Resumed!');
       }
 
-      playlist.push(videoUrl);
+      global.playlist.unshift(videoUrl);
       return ytdl.getBasicInfo(videoUrl, (err, info) => {
         if (err) {
           return console.log(err);
@@ -51,13 +49,6 @@ module.exports = {
     }
 
     play(videoUrl, message);
-  },
-  getPlaylist() {
-    return playlist;
-  },
-  setPlaylist(list) {
-    this.playlist = list;
-    console.log(this.playlist.length);
   }
 }
 
@@ -70,7 +61,6 @@ function play(song, message) {
     var embedMessage = formEmbedMessage(message.author, info, true);
     message.channel.send(embedMessage);
   });
-  
   dispatcher = connection.playStream(stream, streamOptions);
 
   dispatcher.on('end', () => {
@@ -94,6 +84,7 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
     title = "Now Playing 🎵";
   } else {
     title = "Song Added 🎶";
+    embedMessage.addField("Songs in Queue: ", global.playlist.length)
   }
   length_seconds = videoInfo.length_seconds;
   length = parseInt(length_seconds/60, 10) + ":" + length_seconds % 60;
@@ -105,7 +96,6 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .addField('Author: ', videoInfo.author.name)
     .addField('Length: ', length)
-    .addField("Songs in Queue: ", global.playlist.length)
     .setTimestamp();
   
   return embedMessage;
