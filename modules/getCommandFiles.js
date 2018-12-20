@@ -1,9 +1,8 @@
 /** Returns a discord collection of commands,
- *  with the command name as its indentifier and the command information as the body.
+ *  with the command name as its identifier and the command information as the body.
  * 
  *  dir: path of the directory you want to search the files for
  *  fileTypes: array of file types you are search files, ex: ['.txt', '.jpg']
- *
  */
 
 const fs = require('fs');
@@ -11,9 +10,10 @@ const path = require('path');
 const Discord = require('discord.js');
 
 module.exports = (client = Discord.Client) => {
-
-getCommandFiles = function getCommandFiles(dir, fileTypes) {
+  getCommandFiles = function getCommandFiles(dir, fileTypes) {
     const cmd = new Discord.Collection();
+
+    //Recursive function
     function walkDir(currentPath) {
       const files = fs.readdirSync(currentPath);
       for (let i in files) {
@@ -26,7 +26,9 @@ getCommandFiles = function getCommandFiles(dir, fileTypes) {
         }
       }
     };
+
     walkDir(dir);
+
     return cmd; 
   };
 };
