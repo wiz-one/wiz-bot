@@ -1,0 +1,6 @@
+{
+  "prefix": "/",
+  "customReactionPrefix": "*",
+  "token": "dummy",
+  "reactionFilePath": "data/reactions.json"
+}
