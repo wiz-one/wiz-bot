@@ -6,8 +6,8 @@ let { searchYoutube } = require('./../../modules/searchYoutube.js');
 let dispatcher, videoUrl, youtube;
 
 module.exports = {
-  name: 'playtop',
-  description: 'Request the bot to play a song as the next song in the voice channel.',
+  name: 'play',
+  description: 'Request the bot to play a song in the voice channel.',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {
@@ -53,6 +53,6 @@ module.exports = {
       return message.reply('Music Resumed!');
     }
 
-    Music.queueTop(videoUrl, message);
+    Music.queue(videoUrl, message);
   }
 }
