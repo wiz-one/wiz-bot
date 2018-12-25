@@ -1,40 +1,12 @@
 const emojis = require('emojis');
 const onlyEmoji = require('emoji-aware').onlyEmoji;
 const Discord = require('discord.js');
-
-const alphabets = new Discord.Collection();
-alphabets.set('a','🇦');
-alphabets.set('b','🇧');
-alphabets.set('c','🇨');
-alphabets.set('d','🇩');
-alphabets.set('e','🇪');
-alphabets.set('f','🇫');
-alphabets.set('g','🇬');
-alphabets.set('h','🇭');
-alphabets.set('i','🇮');
-alphabets.set('j','🇯');
-alphabets.set('k','🇰');
-alphabets.set('l','🇱');
-alphabets.set('m','🇲');
-alphabets.set('n','🇳');
-alphabets.set('o','🇴');
-alphabets.set('p','🇵');
-alphabets.set('q','🇶');
-alphabets.set('r','🇷');
-alphabets.set('s','🇸');
-alphabets.set('t','🇹');
-alphabets.set('u','🇺');
-alphabets.set('v','🇻');
-alphabets.set('w','🇼');
-alphabets.set('x','🇽');
-alphabets.set('y','🇾');
-alphabets.set('z','🇿');
-
+const emojiCharacters = require('./../modules/emojiCharacters.js');
 
 module.exports = {
     name: 'react',
-    description: 'React the previous message with an emoji',
-    usage: '<emoji>',
+    description: 'React the previous message with emoji or string',
+    usage: '<emoji>/<some string>',
     async execute(message, args) {
 
         if (!args.length) {
@@ -70,7 +42,7 @@ async function process(msg,arg){
         if(emoji[1] == null){
           if(arg.length < 7){
            for(let i = 0; i < arg.length; i++){    
-            await msg.react(alphabets.get(arg.charAt(i).toLowerCase()));
+            await msg.react(emojiCharacters[arg.charAt(i).toLowerCase()]);
            }
           }
         } else {
