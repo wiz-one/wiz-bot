@@ -11,7 +11,7 @@ class Youtube extends EventEmitter {}
 youtube = new Youtube();
 
 youtube.on("play", (url, message) => {
-      if (!dispatcher) {
+      if (!dispatcher || dispatcher.destroyed) {
         return module.exports.play(url, message);
       }
       module.exports.queue(url, message);
