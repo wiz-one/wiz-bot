@@ -31,14 +31,22 @@ module.exports = {
         return console.log(err);
       });
     
-    dispatcher = message.guild.voiceConnection.playStream(stream, streamOptions);
+    connection = message.guild.voiceConnection;
+    dispatcher = connection.playStream(stream, streamOptions);
   
     dispatcher.on('end', () => {
-      // The song has finished
+      let nextSong;
       if (global.playlist.length) {
         nextSong = global.playlist.shift();
         dispatcher = module.exports.play(nextSong.url, message);
+        if (global.loop) {
+          global.playlist.push(nextSong);
+        }
       } else {
+        if (global.loop) {
+          dispatcher = module.exports.play(global.currentPlaying.url, message);
+          return;
+        }
         global.currentPlaying = null;
       }
     });
@@ -97,16 +105,4 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
     .setTimestamp();
   
   return embedMessage;
-}
-
-function sendInfo(ytdl, videoUrl, isNowPlaying, message) {
-  return ytdl.getBasicInfo(videoUrl)
-      .then((info) => {
-        var embedMessage = formEmbedMessage(message.author, info, isNowPlaying);
-        message.channel.send(embedMessage);
-        return info.title;
-      })
-      .catch((err) => {
-        return console.log(err);
-      });
 }
