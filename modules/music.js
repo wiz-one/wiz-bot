@@ -38,10 +38,10 @@ module.exports = {
       let nextSong;
       if (global.playlist.length) {
         nextSong = global.playlist.shift();
-        dispatcher = module.exports.play(nextSong.url, message);
         if (global.loop) {
-          global.playlist.push(nextSong);
+          global.playlist.push(global.currentPlaying);
         }
+        dispatcher = module.exports.play(nextSong.url, message);
       } else {
         if (global.loop) {
           dispatcher = module.exports.play(global.currentPlaying.url, message);
