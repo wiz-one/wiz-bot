@@ -13,7 +13,7 @@ module.exports = {
       message.reply('I am not connected to the channel!');
     }
 
-    if (connection.dispatcher) {
+    if (global.playlist.length || global.currentPlaying) {
       connection.dispatcher.end();
       message.reply('Next song will be played!');
     } else {
