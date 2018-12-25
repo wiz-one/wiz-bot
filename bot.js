@@ -1,7 +1,7 @@
 const express = require('express');
 const Discord = require('discord.js');
 
-var { token } = process.env || require("./config.json");
+const token = process.env.token || require("./config.json").token;
 const PORT = process.env.PORT || 5000;
 
 const client = new Discord.Client();
@@ -24,4 +24,4 @@ client.on('message', message => {
   handleMessage(message);
 });
 
-client.login(token);
+client.login(token); 

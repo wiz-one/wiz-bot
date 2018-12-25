@@ -1,6 +1,6 @@
 module.exports = {
-  name: 'next',
-  description: 'Request the bot to play the next song in the playlist.',
+  name: 'loop',
+  description: 'Request the bot to loop the song in the playlist.',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {
@@ -13,11 +13,12 @@ module.exports = {
       message.reply('I am not connected to the channel!');
     }
 
-    if (global.playlist.length || global.loop) {
-      connection.dispatcher.end();
-      message.reply('Next song will be played!');
+    if (!global.loop) {
+      global.loop = true;
+      message.channel.send('Loop Enabled!');
     } else {
-      message.reply('There isn\'t any music to play!');
+      global.loop = false;
+      message.channel.send('Loop Disabled!');
     }
   }
 }

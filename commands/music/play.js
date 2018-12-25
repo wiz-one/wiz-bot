@@ -1,7 +1,9 @@
 const ytdl = require('ytdl-core');
-const Discord = require('discord.js');
-const streamOptions = { seek: 0, volume: 1, bitrate: 720000 };
-let dispatcher;
+const Music = require('../../modules/music.js');
+
+let { searchYoutube } = require('./../../modules/searchYoutube.js');
+
+let dispatcher, videoUrl, youtube;
 
 module.exports = {
   name: 'play',
@@ -22,91 +24,35 @@ module.exports = {
 
     connection = message.guild.voiceConnection;
 
-    var videoUrl = args.join(' ');
+    var queryString = args.join(' ');
 
     if (!connection) {
       connection = await message.member.voiceChannel.join();
       message.reply('I have successfully connected to the channel!');
     }
 
+    dispatcher = message.guild.voiceConnection.dispatcher;
+
     if (!global.playlist) {
       global.playlist = new Array();
     }
 
-    if (dispatcher) {
+    videoUrl = queryString;
+    youtube = Music.youtube;
 
-      if (dispatcher.paused) {
-        dispatcher.resume();
-        return message.reply('Music Resumed!');
-      }
-
-      playlist.push(videoUrl);
-      return ytdl.getBasicInfo(videoUrl, (err, info) => {
-        if (err) {
-          return console.log(err);
-        }
-        var embedMessage = formEmbedMessage(message.author, info, false);
-        message.channel.send(embedMessage);
-      });
+    if (!queryString.match(/^https?:\/\/(www.youtube.com|youtube.com)/)) {
+      return searchYoutube(queryString, message, "play");
     }
 
-    play(videoUrl, message);
-  },
-  getPlaylist() {
-    return playlist;
-  },
-  setPlaylist(list) {
-    this.playlist = list;
-    console.log(this.playlist.length);
+    if (!dispatcher) {
+      return Music.play(videoUrl, message);
+    }
+
+    if (dispatcher.paused) {
+      dispatcher.resume();
+      return message.reply('Music Resumed!');
+    }
+
+    Music.queue(videoUrl, message);
   }
-}
-
-function play(song, message) {
-  const stream = ytdl(song, { quality: 'highest', filter : 'audioonly' });
-  ytdl.getBasicInfo(song, (err, info) => {
-    if (err) {
-      return console.log(err);
-    }
-    var embedMessage = formEmbedMessage(message.author, info, true);
-    message.channel.send(embedMessage);
-  });
-  
-  dispatcher = connection.playStream(stream, streamOptions);
-
-  dispatcher.on('end', () => {
-    // The song has finished
-    if (global.playlist.length) {
-      nextSong = global.playlist.shift();
-      dispatcher = play(nextSong, message);
-    }
-  });
-  
-  dispatcher.on('error', e => {
-    // Catch any errors that may arise
-    console.log(e);
-  });
-}
-
-function formEmbedMessage(author, videoInfo, nowPlaying) {
-  var title = "";
-  var embedMessage = new Discord.RichEmbed()
-  if (nowPlaying) {
-    title = "Now Playing 🎵";
-  } else {
-    title = "Song Added 🎶";
-  }
-  length_seconds = videoInfo.length_seconds;
-  length = parseInt(length_seconds/60, 10) + ":" + length_seconds % 60;
-  embedMessage
-    .setTitle(title)
-    .setDescription(`[${videoInfo.title}](${videoInfo.video_url})`)
-    .setColor('#da004e')
-    .setThumbnail(videoInfo.thumbnail_url)
-    .setAuthor(author.username, author.avatarURL, author.avatarURL)
-    .addField('Author: ', videoInfo.author.name)
-    .addField('Length: ', length)
-    .addField("Songs in Queue: ", global.playlist.length)
-    .setTimestamp();
-  
-  return embedMessage;
 }
