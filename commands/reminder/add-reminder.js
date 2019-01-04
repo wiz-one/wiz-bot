@@ -15,6 +15,10 @@ module.exports = {
       return message.channel.send("You didn't provide any arguments");
     }
 
+    if (args.length < 3) {
+      return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
+    }
+
     var title = args.slice(2).join(" ");
     var time = new Date(args[0] + " " + args[1]);
     var requester = message.author.username;
@@ -65,7 +69,7 @@ async function save(reminder) {
   var id = 1;
 
   if (global.reminders.length) {
-    id = global.reminders[global.reminder.length].id + 1;
+    id = global.reminders[global.reminders.length - 1].id + 1;
   }
 
   reminder.id = id;
