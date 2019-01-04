@@ -62,7 +62,13 @@ function formEmbedMessage(title, time, author) {
 async function save(reminder) {
   var file = __dirname + "/../../" + reminderFilePath;
   var json = {};
-  reminder.id = global.reminders.length + 1;
+  var id = 1;
+
+  if (global.reminders.length) {
+    id = global.reminders[global.reminder.length].id + 1;
+  }
+
+  reminder.id = id;
   global.reminders.push(reminder);
   json.reminders = global.reminders;
   fs.writeFileSync(file, JSON.stringify(json));
