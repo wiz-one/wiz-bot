@@ -2,5 +2,6 @@
   "prefix": "/",
   "customReactionPrefix": "*",
   "token": "dummy",
-  "reactionFilePath": "data/reactions.json"
+  "reactionFilePath": "data/reactions.json",
+  "reminderFilePath": "data/reminders.json"
 }
