@@ -110,6 +110,7 @@ module.exports = (client = Discord.Client) => {
         if (!newVid.includes(videoSeq) && videoType === 'VOD') {
 
           newVid.push(videoSeq);
+          newVid.sort((a, b) => a - b);
           console.log('newvid: ' + JSON.stringify(newVid));
 
           promiseRetry((retry, number) => {
