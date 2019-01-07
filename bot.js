@@ -10,15 +10,21 @@ const server = express()
 
 require("./handlers/handleMessage.js")(client);
 require("./handlers/initialise.js")(client);
+require('./handlers/initVlive.js')(client);
 require('./modules/getCommandFiles.js')(client);
 require("./newrelic");
 
 client.commands = getCommandFiles('./commands','.js');
-console.log("Successfully initialize commands");
 
-client.once('ready', () => {
+client.once('ready', async () => {
     client.user.setActivity('IZ*ONE', {type: "WATCHING"});
     initialise();
+
+    await initVlive();
+    require('./modules/vlive.js')(client);
+    const VLIVE_CHANNEL = client.channels.find(channel => channel.name === 'vlive');
+    setInterval(() => vlive(VLIVE_CHANNEL), 5000);
+
     console.log('Ready!');
 });
 
