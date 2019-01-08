@@ -24,6 +24,10 @@ module.exports = {
     var requester = message.author.username;
     var author = message.author;
 
+    if (time == "Invalid Date") {
+      return message.channel.send("Invalid time set. Time format must be `yyyy-mm-dd hh:MM`.")
+    }
+
     if (Date.parse(time) - Date.now() < 0) {
       return message.channel.send("Invalid time set. Time must be set after the current time.");
     }

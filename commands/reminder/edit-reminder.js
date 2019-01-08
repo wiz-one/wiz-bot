@@ -38,10 +38,16 @@ module.exports = {
     }
 
     if (argument == "time") {
-      time = args[2] + " " + args[3];
+      time = new Date(args[2] + " " + args[3]);
+      
+      if (time == "Invalid Date") {
+        return message.channel.send("Invalid time set. Time format must be `yyyy-mm-dd hh:MM`.")
+      }
+
       if (Date.parse(time) - Date.now() < 0) {
         return message.channel.send("Invalid time set. Time must be set after the current time.");
       }
+      
       editedReminder.time = new Date(time);
     }
     
