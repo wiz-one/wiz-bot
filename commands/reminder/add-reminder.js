@@ -98,7 +98,6 @@ async function setReminder(reminder, message) {
   notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
     message.channel.send("@everyone", embedMessage);
-    global.reminders.splice(i, 1);
    }, timeout);
   global.reminders.push(reminder);
   global.notifications.set(reminder.id, notification);
