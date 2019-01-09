@@ -56,7 +56,7 @@ module.exports = {
       editedReminder.title = title;
     }
 
-    var embedMessage = formEmbedMessage(editedReminder.title, editedReminder.time, author);
+    var embedMessage = formEmbedMessage(editedReminder, author);
     message.channel.send(embedMessage)
 
     if (Date.parse(time) - Date.now() <= 30 * ONE_MIN) {
@@ -67,13 +67,14 @@ module.exports = {
   }
 }
 
-function formEmbedMessage(title, time, author) {
-  var date = new Date(time);
+function formEmbedMessage(reminder, author) {
+  var date = new Date(reminder.time);
   const embedMessage = new Discord.RichEmbed()
     .setColor('#da004e')
     .setTitle("Reminder Updated")
-    .setDescription(title)
+    .setDescription(reminder.title)
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
+    .addField('ID', reminder.id)
     .addField('Time', date.toString())
     .setTimestamp();
   return embedMessage;
@@ -104,8 +105,12 @@ function formReminder(reminder) {
 async function setReminder(reminder, message) {
   timeout = Date.parse(reminder.time) - Date.now();
   console.log("Timeout: " + timeout);
-  setTimeout(() => {
+  notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
     message.channel.send("@everyone", embedMessage)
    }, timeout);
+  var removedNotification = global.notifications.get(reminder.id);
+  global.notifications.delete(reminder.id);
+  clearTimeout(removedNotification);
+  global.notifications.set(reminder.id, notification);
 }

@@ -33,7 +33,7 @@ module.exports = {
     }
 
     var obj = formJsonObj(title, time, requester, message.channel.id, message.channel.guild.id);
-    var embedMessage = formEmbedMessage(title, time, author);
+    var embedMessage = formEmbedMessage(obj, author);
     message.channel.send(embedMessage)
 
     if (Date.parse(time) - Date.now() <= 30 * ONE_MIN) {
@@ -45,7 +45,14 @@ module.exports = {
 }
 
 function formJsonObj(title, time, requester, channel_id, guild_id) {
+  var id = 1;
+
+  if (global.reminders.length) {
+    id = global.reminders[global.reminders.length - 1].id + 1;
+  }
+
   var data = {
+    id: id,
     title: title,
     time: time,
     requested_by: requester,
@@ -55,13 +62,14 @@ function formJsonObj(title, time, requester, channel_id, guild_id) {
   return data;
 }
 
-function formEmbedMessage(title, time, author) {
-  var date = new Date(time);
+function formEmbedMessage(reminder, author) {
+  var date = new Date(reminder.time);
   const embedMessage = new Discord.RichEmbed()
     .setColor('#da004e')
     .setTitle("Reminder Added")
-    .setDescription(title)
+    .setDescription(reminder.title)
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
+    .addField('ID', reminder.id)
     .addField('Time', date.toString())
     .setTimestamp();
   return embedMessage;
@@ -70,13 +78,6 @@ function formEmbedMessage(title, time, author) {
 async function save(reminder) {
   var file = __dirname + "/../../" + reminderFilePath;
   var json = {};
-  var id = 1;
-
-  if (global.reminders.length) {
-    id = global.reminders[global.reminders.length - 1].id + 1;
-  }
-
-  reminder.id = id;
   global.reminders.push(reminder);
   json.reminders = global.reminders;
   fs.writeFileSync(file, JSON.stringify(json));
@@ -94,9 +95,11 @@ function formReminder(reminder) {
 
 async function setReminder(reminder, message) {
   timeout = Date.parse(reminder.time) - Date.now();
-  console.log("Timeout: " + timeout);
-  setTimeout(() => {
+  notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
-    message.channel.send("@everyone", embedMessage)
+    message.channel.send("@everyone", embedMessage);
+    global.reminders.splice(i, 1);
    }, timeout);
+  global.reminders.push(reminder);
+  global.notifications.set(reminder.id, notification);
 }

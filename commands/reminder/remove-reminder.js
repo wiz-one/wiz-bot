@@ -2,8 +2,6 @@ const fs = require("fs");
 const Discord = require("discord.js");
 const { reminderFilePath } = require("../../config.json");
 
-const ONE_MIN = 60000;
-
 module.exports = {
   name: 'remove-reminder',
   description: 'Remove a reminder based on the id given',
@@ -45,7 +43,8 @@ function removeReminder(id) {
   let removingReminder = global.reminders.find(reminder => reminder.id == id);
   let removingReminderIndex = global.reminders.indexOf(removingReminder);
   global.reminders.splice(removingReminderIndex, 1);
-  console.log(removingReminderIndex);
+  clearTimeout(global.notifications.get(removingReminder.id));
+  global.notifications.delete(removingReminder.id);
   return removingReminder;
 }
 

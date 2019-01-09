@@ -26,12 +26,13 @@ async function setReminder(client) {
   for (reminder of global.reminders) {
     let timeout = Date.parse(reminder.time) - Date.now();
     if (timeout <= 30 * ONE_MIN && timeout >= 0) {
-      setTimeout(() => {
+      notification = setTimeout(() => {
         sendEmbedMessage(reminder, client);
         global.reminders.splice(i, 1);
         save(reminders);
       }, timeout);
       i++;
+      global.notifications.set(reminder.id, notification);
     }
   }
 }
