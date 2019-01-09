@@ -11,6 +11,7 @@
     "ffmpeg-binaries": "^4.0.0",
     "google-auth-library": "^2.0.2",
     "googleapis": "^36.0.0",
+    "moment-timezone": "^0.5.23",
     "newrelic": "^4.12.0",
     "node-opus": "^0.3.1",
     "pg": "^7.7.1",

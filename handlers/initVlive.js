@@ -42,10 +42,10 @@ async function startInit() {
   console.log('Initializing Vlive data... ')
 
   //Initialize data from DB storage to model variables 
-  await readFromDb('newvideo').then((result) => newVid = result.map(e => e.id).sort((a, b) => a - b)); //Sort by id (upload date)
-  await readFromDb('newpost').then((result) => newPost = result.map(e => e.id));
-  await readFromDb('livevideo').then((result) => liveVid = result);
-  await readFromDb('nonsubvideo').then((result) => nonSubVid = result);
+  readFromDb('livevideo').then((result) => liveVid = result);
+  readFromDb('nonsubvideo').then((result) => nonSubVid = result);
+  readFromDb('newpost').then((result) => newPost = result.map(e => e.id));
+  await readFromDb('newvideo').then((result) => newVid = result.sort((a, b) => sortByDate(a, b)));
 
   // Read proxies and generate random start index
   await fs.readFile(proxiesFilePath, (err, data) => {
@@ -89,7 +89,7 @@ function printStats() {
   console.log('Board Id: ' + channelBoardId);
 
   console.log('\nModel/DB Information => ');
-  console.log('NewVid: ' + JSON.stringify(newVid))
+  console.log('NewVid: ' + JSON.stringify(newVid.map(e => e.id)))
   console.log('NewPost: ' + JSON.stringify(newPost))
   console.log('LiveVid: ' + JSON.stringify(liveVid.map(e => e.seq)))
   console.log('NonSubVid: ' + JSON.stringify(nonSubVid.map(e => e.seq)))
@@ -115,11 +115,8 @@ function getData(url) {
 
   return new Promise((resolve, reject) => {
     request.get(options, (err, resp, body) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(body);
-      }
+      if (err) reject(err);
+      resolve(body);
     });
   });
 }
@@ -138,4 +135,11 @@ function updateApiUrl() {
   vLiveChannelApi = `https://api-vfan.vlive.tv/channel.${channelId}?app_id=${appId}&fields=channel_name,fan_count,channel_cover_img,channel_profile_img,representative_color,background_color,celeb_board,fan_board`;
   vliveVideoApi = `https://api-vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id=${appId}&channelSeq=${channelId}&maxNumOfRows=${maxNumOfRows}`;
   vLivePostApi = `https://api-vfan.vlive.tv/v2/board.${channelBoardId}/posts?app_id=${appId}&limit=1`;
+}
+
+function sortByDate(a, b) {
+  const x = new Date(a.time).getTime();
+  const y = new Date(b.time).getTime();
+  if (x === y) return a.id - b.id; //If same upload time, sort by id
+  return x - y;
 }

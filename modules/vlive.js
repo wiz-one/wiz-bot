@@ -4,12 +4,14 @@ const puppeteer = require('puppeteer');
 const Discord = require('discord.js');
 const pg = require('pg');
 const fs = require('fs');
+const moment = require('moment-timezone');
 const vliveData = global.vliveData;
 
 //Base variables
 const appId = vliveData.appId;
 const maxNumOfRows = vliveData.maxNumOfRows; //Maximum no of recent videos to check at every request
 const pool = vliveData.pool;
+moment.tz.setDefault("Asia/Seoul"); //Set timezone to Seoul
 
 //Model variables
 var nonSubVid = vliveData.nonSubVid;
@@ -57,15 +59,16 @@ module.exports = (client = Discord.Client) => {
         const playCount = video.playCount;
         const likeCount = video.likeCount;
         const commentCount = video.commentCount;
+        const uploadDateTime = video.onAirStartAt;
         const duration = secondsToHms(video.playTime, true);
 
         //=================================================================== LIVE VIDEO =================================
 
         if (!liveVid.some(e => e.seq === videoSeq) && videoType === 'LIVE') {
 
-          var queryConfig = {
+          const queryConfig = {
             text: 'INSERT INTO livevideo VALUES($1, $2, $3, $4);',
-            values: [videoSeq, `${videoTitle}`, `${thumbnail}`, `${Date.now()}`]
+            values: [videoSeq, `${videoTitle}`, `${thumbnail}`, `${uploadDateTime}`]
           };
 
           pool.query(queryConfig).catch(err => console.log('Query to livevideo: ' + err));
@@ -74,7 +77,7 @@ module.exports = (client = Discord.Client) => {
             seq: videoSeq,
             title: videoTitle,
             img: thumbnail,
-            time: (Date.now()).toString()
+            time: uploadDateTime
           });
 
           console.log(JSON.stringify(liveVid));
@@ -88,6 +91,7 @@ module.exports = (client = Discord.Client) => {
           console.log('Play: ' + playCount);
           console.log('Like: ' + likeCount);
           console.log('Comment: ' + commentCount);
+          console.log('Uploaded On: ' + uploadDateTime);
 
           const msgEmbed = new Discord.RichEmbed()
             .setColor('#52fffb')
@@ -105,95 +109,135 @@ module.exports = (client = Discord.Client) => {
           discordChannel.send(msgEmbed);
         }
 
-        //=================================================================== NEW VIDEO =============================
+        //=================================================================== NEW & REUPLOADED VIDEO =============================
 
-        if (!newVid.includes(videoSeq) && videoType === 'VOD') {
+        if (!newVid.some(e => e.id === videoSeq) && videoType === 'VOD') {
 
-          newVid.push(videoSeq);
-          newVid.sort((a, b) => a - b);
-          console.log('newvid: ' + JSON.stringify(newVid));
+          newVid.push({
+            id: videoSeq,
+            time: uploadDateTime
+          });
 
-          promiseRetry((retry, number) => {
-            return getVideoId(videoSeq)
-              .catch(retry);
-          })
-            .then(([key, videoId]) => {
-              const videoInfoApi = `https://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?key=${key}&videoId=${videoId}`;
+          newVid.sort((a, b) => sortByDate(a, b));
+          console.log('newvid: ' + JSON.stringify(newVid.map(e => e.id)));
 
-              getData(videoInfoApi).then((result) => {
-                getEngSub(result).then(([engSub, highestReso]) => {
+          const queryConfig1 = {
+            text: 'INSERT INTO newvideo VALUES($1, $2);',
+            values: [videoSeq, `${uploadDateTime}`]
+          };
 
-                  pool.query(`INSERT INTO newvideo VALUES(${videoSeq})`);
+          pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
 
-                  if (newVid.length > maxNumOfRows) {
-                    const toRemove = newVid.splice(0, 1);
-                    pool.query(`DELETE FROM newvideo WHERE id = ${toRemove}`);
-                  }
+          if (newVid.length > maxNumOfRows) {
+            const toRemove = newVid.splice(0, 1);
+            pool.query(`DELETE FROM newvideo WHERE id = ${toRemove}`).catch(err => console.log(err));
+          }
 
-                  console.log('New Video! =>');
+          console.log('New Video! =>');
+          console.log(channelName);
+          console.log('Id: ' + videoSeq);
+          console.log('Title: ' + videoTitle);
+          console.log('Thumbnail: ' + thumbnail);
+          console.log('Type: ' + videoType);
+          console.log('Duration: ' + duration);
+          console.log('Play: ' + playCount);
+          console.log('Like: ' + likeCount);
+          console.log('Comment: ' + commentCount);
+          console.log('Uploaded On: ' + uploadDateTime);
 
-                  console.log(channelName);
-                  console.log('Id: ' + videoSeq);
-                  console.log('Title: ' + videoTitle);
-                  console.log('Thumbnail: ' + thumbnail);
-                  console.log('Type: ' + videoType);
-                  console.log('Duration: ' + duration);
-                  console.log('Play: ' + playCount);
-                  console.log('Like: ' + likeCount);
-                  console.log('Comment: ' + commentCount);
-                  console.log('Resolution: ' + highestReso);
-                  console.log('English Subtitle: ' + engSub);
+          const msgEmbed = new Discord.RichEmbed()
+            .setTitle(videoTitle)
+            .setURL(videoUrl)
+            .setThumbnail(channelProfileImage)
+            .addField('Plays', '▶ ' + playCount, true)
+            .addField('Hearts', '❤ ' + likeCount, true)
+            .addField('Duration', '⏱ ' + duration, true)
+            .addField('Comment', '💬 ' + commentCount, true)
+            .setImage(thumbnail)
+            .setTimestamp();
 
-                  const msgEmbed = new Discord.RichEmbed()
-                    .setColor('#FEE715')
-                    .setTitle(videoTitle)
-                    .setURL(videoUrl)
-                    .setAuthor(`${channelName} - New Video Uploaded`, 'https://imgur.com/wsC83yq.png', channelUrl)
-                    .setThumbnail(channelProfileImage)
-                    .addField('Plays', '▶ ' + playCount, true)
-                    .addField('Hearts', '❤ ' + likeCount, true)
-                    .addField('Duration', '⏱ ' + duration, true)
-                    .addField('Comment', '💬 ' + commentCount, true)
-                    .addField('Resolution', `**${highestReso}**`, true)
-                    .setImage(thumbnail)
-                    .setTimestamp();
+          const uploadTime = moment(uploadDateTime);
+          const diffrnceHr = moment.duration(moment().diff(uploadTime)).asHours();
 
-                  //Ignore eng sub for dance practice and MV
-                  if (videoTitle.includes('Dance Practice') || videoTitle.includes(' MV ')) {
-                    return discordChannel.send(msgEmbed);
-                  }
+          //Check if the video is uploaded within this hour, else it's a reuploaded video
+          if (diffrnceHr < 1) {
+            msgEmbed.setColor('#FEE715');
+            msgEmbed.setAuthor(`${channelName} - New Video Uploaded`, 'https://imgur.com/wsC83yq.png', channelUrl);
+          } else {
+            msgEmbed.setColor('#FF7F24');
+            msgEmbed.setAuthor(`${channelName} - Reuploaded Video`, 'https://imgur.com/wsC83yq.png', channelUrl);
+          }
 
-                  msgEmbed.addField('English Subtitle', engSub, true)
-                  discordChannel.send(msgEmbed);
+          //Send the message first then edit later after finding subs and resolution
+          discordChannel.send(msgEmbed).then((message) => {
 
-                  if (engSub === '**❌**') {
+            //Get video id & key then get subs & resolution
+            promiseRetry((retry, number) => {
+              return getVideoId(videoSeq)
+                .catch(retry);
+            })
+              .then(([key, videoId]) => {
+                const videoInfoApi = `https://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?key=${key}&videoId=${videoId}`;
 
-                    var queryConfig = {
-                      text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
-                      values: [videoSeq, `${videoId}`, `${videoTitle}`, `${videoUrl}`, `${thumbnail}`, `${key}`]
-                    };
+                getData(videoInfoApi).then((result) => {
+                  getSubAndReso(result).then(([engSub, highestReso]) => {
 
-                    pool.query(queryConfig).catch(err => console.log('Query to nonsubvideo: ' + err));
+                    console.log('Found Subs and Resolution for new Video! =>');
+                    console.log('Id: ' + videoSeq);
+                    console.log('Resolution: ' + highestReso);
+                    console.log('English Subtitle: ' + engSub);
 
-                    nonSubVid.push({
-                      seq: videoSeq,
-                      id: videoId,
-                      title: videoTitle,
-                      url: videoUrl,
-                      img: thumbnail,
-                      key: key
-                    });
-                  }
+                    msgEmbed.addField('Resolution', `**${highestReso}**`, true)
+
+                    //Ignore eng sub for dance practice and MV
+                    if (videoTitle.includes('Dance Practice') || videoTitle.includes(' MV ')) {
+                      return message.edit(msgEmbed);
+                    }
+
+                    msgEmbed.addField('English Subtitle', engSub, true)
+                    message.edit(msgEmbed);
+
+                    if (engSub === '**❌**') {
+
+                      const queryConfig2 = {
+                        text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
+                        values: [videoSeq, `${videoId}`, `${videoTitle}`, `${videoUrl}`, `${thumbnail}`, `${key}`]
+                      };
+
+                      pool.query(queryConfig2).catch(err => console.log('Query to nonsubvideo: ' + err));
+
+                      nonSubVid.push({
+                        seq: videoSeq,
+                        id: videoId,
+                        title: videoTitle,
+                        url: videoUrl,
+                        img: thumbnail,
+                        key: key
+                      });
+                    }
+                  }).catch(e => console.log(e + videoSeq));
                 }).catch(e => console.log(e + videoSeq));
-              })
-            });
+              });
+          });
         }
 
         //=================================================================== NEW PLAYLIST ================
 
-        if (!newVid.includes(videoSeq) && videoType === 'PLAYLIST') {
-          newVid.push(videoSeq);
-          pool.query(`INSERT INTO newvideo VALUES(${videoSeq})`);
+        if (!newVid.some(e => e.id === videoSeq) && videoType === 'PLAYLIST') {
+
+          newVid.push({
+            id: videoSeq,
+            time: uploadDateTime
+          });
+
+          newVid.sort((a, b) => sortByDate(a, b));
+
+          const queryConfig = {
+            text: 'INSERT INTO newvideo VALUES($1, $2);',
+            values: [videoSeq, `${uploadDateTime}`]
+          };
+
+          pool.query(queryConfig).catch(err => console.log('Query to newvideo: ' + err));
 
           const playlist = video.videoPlaylist.videoList;
           const videoCount = playlist.length;
@@ -206,7 +250,7 @@ module.exports = (client = Discord.Client) => {
           var totalDuration = playlist.map(vid => vid.playTime).reduce((a, b) => a + b, 0);
           totalDuration = secondsToHms(totalDuration, true);
 
-          console.log('newvid: ' + JSON.stringify(newVid));
+          console.log('newvid: ' + JSON.stringify(newVid.map(e => e.id)));
 
           console.log('New Video Playlist! =>');
           console.log('Id: ' + videoSeq);
@@ -215,6 +259,7 @@ module.exports = (client = Discord.Client) => {
           console.log('Type: ' + videoType);
           console.log('videoCount: ' + videoCount);
           console.log('totalDuration: ' + totalDuration);
+          console.log('Uploaded On: ' + uploadDateTime);
 
           const msgEmbed = new Discord.RichEmbed()
             .setColor('#660066')
@@ -245,7 +290,8 @@ module.exports = (client = Discord.Client) => {
             liveVid.splice(i, 1);
             pool.query(`DELETE FROM livevideo WHERE seq = ${video.seq}`);
 
-            var dur = Math.floor((Date.now() - parseInt(video.time)) / 1000) - 5;
+            const uploadTime = moment(video.time);
+            var dur = moment.duration(moment().diff(uploadTime)).asSeconds();
             dur = secondsToHms(dur, false);
 
             console.log(`Vlive Just Ended =>`);
@@ -281,7 +327,7 @@ module.exports = (client = Discord.Client) => {
         const videoInfoApi = `https://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?key=${video.key}&videoId=${video.id}`;
 
         getData(videoInfoApi).then((result) => {
-          getEngSub(result).then(([engSub, highestReso]) => {
+          getSubAndReso(result).then(([engSub, highestReso]) => {
 
             if (engSub === '**✅**') {
               console.log('English Subtitle Out => ' + video.seq);
@@ -396,11 +442,8 @@ function getData(url) {
 
   return new Promise((resolve, reject) => {
     request.get(options, (err, resp, body) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(body);
-      }
+      if (err) reject(err);
+      resolve(body);
     });
   });
 }
@@ -425,7 +468,7 @@ async function getVideoId(videoSeq) {
   var key, videoId, subtitles;
 
   return new Promise(async (resolve, reject) => {
-    await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 })
+    await page.goto(url, { waitUntil: 'load', timeout: 30000 })
       .then(async () => {
 
         const elements = await page.evaluate(() => {
@@ -472,7 +515,7 @@ async function resetKey(video) {
 
     video.key = key;
 
-    var queryConfig = {
+    const queryConfig = {
       text: 'UPDATE nonsubvideo SET key = $1 WHERE seq = $2;',
       values: [key, video.seq]
     };
@@ -481,13 +524,13 @@ async function resetKey(video) {
   });
 }
 
-function getEngSub(result) {
+function getSubAndReso(result) {
 
   return new Promise((resolve, reject) => {
     if (result.errorCode == 'INVALID_KEY') reject('Invalid Key, Ignored => ');
     if (result.errorCode === 'EXPIRED_KEY') reject('Key Expired => ');
 
-    const resoList = result.videos.list.map(e => e.encodingOption.height);
+    const resoList = result.videos.list.map(e => parseInt(e.encodingOption.name.slice(0, -1)));
     const highestReso = Math.max.apply(Math, resoList) + 'p';
     var engSub;
 
@@ -521,4 +564,11 @@ function secondsToHms(d, option) {
   }
 
   return hDisplay + mDisplay + sDisplay;
+}
+
+function sortByDate(a, b) {
+  const x = new Date(a.time).getTime();
+  const y = new Date(b.time).getTime();
+  if (x === y) return a.id - b.id; //If same upload time, sort by id
+  return x - y;
 }
