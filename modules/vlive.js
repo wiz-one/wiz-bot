@@ -121,18 +121,6 @@ module.exports = (client = Discord.Client) => {
           newVid.sort((a, b) => sortByDate(a, b));
           console.log('newvid: ' + JSON.stringify(newVid.map(e => e.id)));
 
-          const queryConfig1 = {
-            text: 'INSERT INTO newvideo VALUES($1, $2);',
-            values: [videoSeq, `${uploadDateTime}`]
-          };
-
-          pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
-
-          if (newVid.length > maxNumOfRows) {
-            const toRemove = newVid.splice(0, 1);
-            pool.query(`DELETE FROM newvideo WHERE id = ${toRemove}`).catch(err => console.log(err));
-          }
-
           console.log('New Video! =>');
           console.log(channelName);
           console.log('Id: ' + videoSeq);
@@ -158,67 +146,35 @@ module.exports = (client = Discord.Client) => {
 
           const uploadTime = moment(uploadDateTime);
           const diffrnceHr = moment.duration(moment().diff(uploadTime)).asHours();
+          var isReupVideo = false;
 
           //Check if the video is uploaded within this hour, else it's a reuploaded video
           if (diffrnceHr < 1) {
             msgEmbed.setColor('#FEE715');
             msgEmbed.setAuthor(`${channelName} - New Video Uploaded`, 'https://imgur.com/wsC83yq.png', channelUrl);
           } else {
+            isReupVideo = true;
             msgEmbed.setColor('#FF7F24');
             msgEmbed.setAuthor(`${channelName} - Reuploaded Video`, 'https://imgur.com/wsC83yq.png', channelUrl);
           }
 
-          //Send the message first then edit later after finding subs and resolution
-          discordChannel.send(msgEmbed).then((message) => {
+          if (isReupVideo) {
+            discordChannel.send(msgEmbed).then((message) => editMsgWithSubAndReso(message, msgEmbed, video));
+          } else {
 
-            //Get video id & key then get subs & resolution
-            promiseRetry((retry, number) => {
-              return getVideoId(videoSeq)
-                .catch(retry);
+            //Check if the new video notif have been posted before in channel, if true then edit the msg instead.
+            //To handle case when new video notif is sent to group but bot crashes when searching for eng sub and reso.
+
+            fetchEmbeded(discordChannel, videoUrl).then(([hasPosted, msgToEdit]) => {
+              if (hasPosted) {
+                console.log('Notification have been posted before in channel. Editing the message instead => ' + videoSeq);
+                editMsgWithSubAndReso(msgToEdit, msgEmbed, video);
+              }
+              else {
+                discordChannel.send(msgEmbed).then((message) => editMsgWithSubAndReso(message, msgEmbed, video));
+              }
             })
-              .then(([key, videoId]) => {
-                const videoInfoApi = `https://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?key=${key}&videoId=${videoId}`;
-
-                getData(videoInfoApi).then((result) => {
-                  getSubAndReso(result).then(([engSub, highestReso]) => {
-
-                    console.log('Found Subs and Resolution for new Video! =>');
-                    console.log('Id: ' + videoSeq);
-                    console.log('Resolution: ' + highestReso);
-                    console.log('English Subtitle: ' + engSub);
-
-                    msgEmbed.addField('Resolution', `**${highestReso}**`, true)
-
-                    //Ignore eng sub for dance practice and MV
-                    if (videoTitle.includes('Dance Practice') || videoTitle.includes(' MV ')) {
-                      return message.edit(msgEmbed);
-                    }
-
-                    msgEmbed.addField('English Subtitle', engSub, true)
-                    message.edit(msgEmbed);
-
-                    if (engSub === '**❌**') {
-
-                      const queryConfig2 = {
-                        text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
-                        values: [videoSeq, `${videoId}`, `${videoTitle}`, `${videoUrl}`, `${thumbnail}`, `${key}`]
-                      };
-
-                      pool.query(queryConfig2).catch(err => console.log('Query to nonsubvideo: ' + err));
-
-                      nonSubVid.push({
-                        seq: videoSeq,
-                        id: videoId,
-                        title: videoTitle,
-                        url: videoUrl,
-                        img: thumbnail,
-                        key: key
-                      });
-                    }
-                  }).catch(e => console.log(e + videoSeq));
-                }).catch(e => console.log(e + videoSeq));
-              });
-          });
+          }
         }
 
         //=================================================================== NEW PLAYLIST ================
@@ -450,24 +406,25 @@ function getData(url) {
 
 async function getVideoId(videoSeq) {
 
-  const url = `https://www.vlive.tv/video/${videoSeq}`;
-  const proxy = proxies[count];
-
-  count++;
-  if (count == proxies.length) count = 0;
-  console.log(`Status: Getting VideoId(${videoSeq}) with proxy => ` + proxy);
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${proxy}`]
-  });
-
-  const page = await browser.newPage();
-  await page.setUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) GSA/3.1.0.23513 Mobile/10A523 Safari/8536.25");
-
-  var key, videoId, subtitles;
-
   return new Promise(async (resolve, reject) => {
+
+    const url = `https://www.vlive.tv/video/${videoSeq}`;
+    const proxy = proxies[count];
+
+    count++;
+    if (count == proxies.length) count = 0;
+    console.log(`Status: Getting VideoId(${videoSeq}) with proxy => ` + proxy);
+
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${proxy}`]
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent("Mozilla/5.0 (iPhone; CPU iPhone OS 6_0_1 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) GSA/3.1.0.23513 Mobile/10A523 Safari/8536.25");
+
+    var key, videoId, subtitles;
+
     await page.goto(url, { waitUntil: 'load', timeout: 30000 })
       .then(async () => {
 
@@ -477,51 +434,60 @@ async function getVideoId(videoSeq) {
           return subs;
         });
 
+        await browser.close();
+
         var txt = elements[8];
+
         txt = txt.replace(/(\r\n\t|\n|\r\t|\s+)/g, "");
+
         const start = txt.indexOf('vlive.video.init(') + 17;
-        const end = txt.indexOf(');vlive.video.suggest(', start);
+        const end = txt.indexOf(');', start);
 
         txt = txt.substr(start, end - start);
         var array = txt.split(',');
 
-        //console.log(array);
         videoId = array[8].slice(1, -1);
         key = array[9].slice(1, -1);
 
         resolve([key, videoId]);
       })
 
-      .catch(e => {
-        //console.log('Page Error: ' + e);
+      .catch(async (e) => {
+        console.log('Page Error: ' + e + ' => ' + videoSeq);
+        await browser.close();
         reject(e);
       });
-
-    await browser.close();
   });
 }
 
 async function resetKey(video) {
 
   console.log(`Resetting key => ${video.seq} (${video.id})`);
+  const retOption = {
+    retries: 100000,
+    factor: 2,
+    minTimeout: 2000,
+    maxTimeout: 60000,
+  }
 
-  await promiseRetry((retry, number) => {
+  await promiseRetry((retry) => {
     return getVideoId(video.seq)
       .catch(retry);
-  }).then(([key, videoId]) => {
-    console.log('Reset successfully => ' + video.seq)
-    console.log('Old key: ' + video.key);
-    console.log('New key: ' + key);
+  }, retOption)
+    .then(([key, videoId]) => {
+      console.log('Reset successfully => ' + video.seq)
+      console.log('Old key: ' + video.key);
+      console.log('New key: ' + key);
 
-    video.key = key;
+      video.key = key;
 
-    const queryConfig = {
-      text: 'UPDATE nonsubvideo SET key = $1 WHERE seq = $2;',
-      values: [key, video.seq]
-    };
+      const queryConfig = {
+        text: 'UPDATE nonsubvideo SET key = $1 WHERE seq = $2;',
+        values: [key, video.seq]
+      };
 
-    pool.query(queryConfig).catch(err => console.log('Error Update key nonSubVideo: ' + err));
-  });
+      pool.query(queryConfig).catch(err => console.log('Error Update key nonSubVideo: ' + err));
+    });
 }
 
 function getSubAndReso(result) {
@@ -571,4 +537,113 @@ function sortByDate(a, b) {
   const y = new Date(b.time).getTime();
   if (x === y) return a.id - b.id; //If same upload time, sort by id
   return x - y;
+}
+
+function editMsgWithSubAndReso(message, msgEmbed, video) {
+
+  const videoSeq = video.videoSeq;
+  const videoTitle = video.title;
+  const videoUrl = 'https://www.vlive.tv/video/' + videoSeq;
+  const thumbnail = video.thumbnail;
+  const uploadDateTime = video.onAirStartAt;
+  const retOption = {
+    retries: 100000,
+    factor: 2,
+    minTimeout: 2000,
+    maxTimeout: 10000,
+  }
+
+  //Get video id & key then get subs & resolution
+  promiseRetry((retry) => {
+    return getVideoId(videoSeq)
+      .catch(retry);
+  }, retOption)
+    .then(([key, videoId]) => {
+      const videoInfoApi = `https://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?key=${key}&videoId=${videoId}`;
+
+      getData(videoInfoApi).then((result) => {
+        getSubAndReso(result).then(([engSub, highestReso]) => {
+
+          const queryConfig1 = {
+            text: 'INSERT INTO newvideo VALUES($1, $2);',
+            values: [videoSeq, `${uploadDateTime}`]
+          };
+
+          pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
+
+          if (newVid.length > maxNumOfRows) {
+            const toRemove = newVid.splice(0, 1);
+            pool.query(`DELETE FROM newvideo WHERE id = ${toRemove}`).catch(err => console.log(err));
+          }
+
+          console.log('Found Subs and Resolution for new Video! =>');
+          console.log('Id: ' + videoSeq);
+          console.log('Resolution: ' + highestReso);
+          console.log('English Subtitle: ' + engSub);
+
+          msgEmbed.addField('Resolution', `**${highestReso}**`, true)
+
+          //Ignore eng sub for dance practice and MV
+          if (videoTitle.includes('Dance Practice') || videoTitle.includes(' MV ')) {
+            return message.edit(msgEmbed);
+          }
+
+          msgEmbed.addField('English Subtitle', engSub, true)
+          message.edit(msgEmbed);
+
+          if (engSub === '**❌**') {
+
+            const queryConfig2 = {
+              text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
+              values: [videoSeq, `${videoId}`, `${videoTitle}`, `${videoUrl}`, `${thumbnail}`, `${key}`]
+            };
+
+            pool.query(queryConfig2).catch(err => console.log('Query to nonsubvideo: ' + err));
+
+            nonSubVid.push({
+              seq: videoSeq,
+              id: videoId,
+              title: videoTitle,
+              url: videoUrl,
+              img: thumbnail,
+              key: key
+            });
+          }
+        }).catch(e => console.log(e + videoSeq));
+      }).catch(e => console.log(e + videoSeq));
+    });
+}
+
+function fetchEmbeded(discordChannel, url) {
+
+  return new Promise(async (resolve, reject) => {
+
+    var msgToEdit;
+    var fetched = await discordChannel.fetchMessages({ limit: 10 });
+
+    fetched = await fetched.filter(msg => {
+
+      var urlToCheck;
+      var noSubAndReso;
+
+      if (msg.embeds.length) {
+        var receivedEmbed = msg.embeds[0];
+        receivedEmbed = new Discord.RichEmbed(receivedEmbed);
+        urlToCheck = receivedEmbed.url;
+        if (receivedEmbed.fields.length == 4) noSubAndReso = true;
+      }
+
+      return msg.author.bot
+        && msg.embeds.length
+        && (urlToCheck === url)
+        && noSubAndReso;
+    });
+
+    if (fetched.size) {
+      const iterator = await fetched.entries();
+      msgToEdit = iterator.next().value[1];
+    }
+
+    resolve([fetched.size, msgToEdit]);
+  });
 }
