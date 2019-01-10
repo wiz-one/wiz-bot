@@ -588,6 +588,8 @@ function editMsgWithSubAndReso(message, msgEmbed, video) {
 
           if (engSub === '**❌**') {
 
+            if(nonSubVid.some(e => e.seq === videoSeq)) return;
+
             const queryConfig2 = {
               text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
               values: [videoSeq, `${videoId}`, `${videoTitle}`, `${videoUrl}`, `${thumbnail}`, `${key}`]
