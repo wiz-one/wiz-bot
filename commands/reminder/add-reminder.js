@@ -19,6 +19,8 @@ module.exports = {
       return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
     }
 
+    console.log(new Date(message.createdTimestamp).getTimezoneOffset());
+
     var title = args.slice(2).join(" ");
     var time = new Date(args[0] + " " + args[1]);
     var requester = message.author.username;
@@ -98,6 +100,8 @@ async function setReminder(reminder, message) {
   notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
     message.channel.send("@everyone", embedMessage);
+    var index = global.reminders.indexOf(reminder);
+    global.reminders.splice(index, 1);
    }, timeout);
   global.reminders.push(reminder);
   global.notifications.set(reminder.id, notification);
