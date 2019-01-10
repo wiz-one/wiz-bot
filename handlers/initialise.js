@@ -12,8 +12,9 @@ module.exports = (client = Discord.Client) => {
     console.log("Initialising");
 
     global.reminders = readReminders();
+    global.notifications = new Map();
 
-    setInterval(reminder, 3 * ONE_MIN);
+    setInterval(reminder, 30 * ONE_MIN);
     reminder();
   }
 }
