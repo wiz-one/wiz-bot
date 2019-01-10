@@ -145,11 +145,11 @@ module.exports = (client = Discord.Client) => {
             .setTimestamp();
 
           const uploadTime = moment(uploadDateTime);
-          const diffrnceHr = moment.duration(moment().diff(uploadTime)).asHours();
+          const diffrnceHr = moment.duration(moment().diff(uploadTime)).asMinutes();
           var isReupVideo = false;
 
-          //Check if the video is uploaded within this hour, else it's a reuploaded video
-          if (diffrnceHr < 1) {
+          //Check if the video is uploaded within this 20min, else it's a reuploaded video
+          if (diffrnceHr < 20) {
             msgEmbed.setColor('#FEE715');
             msgEmbed.setAuthor(`${channelName} - New Video Uploaded`, 'https://imgur.com/wsC83yq.png', channelUrl);
           } else {
@@ -570,11 +570,6 @@ function editMsgWithSubAndReso(message, msgEmbed, video) {
           };
 
           pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
-
-          if (newVid.length > maxNumOfRows) {
-            const toRemove = newVid.splice(0, 1);
-            pool.query(`DELETE FROM newvideo WHERE id = ${toRemove}`).catch(err => console.log(err));
-          }
 
           console.log('Found Subs and Resolution for new Video! =>');
           console.log('Id: ' + videoSeq);
