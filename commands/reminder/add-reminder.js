@@ -18,16 +18,15 @@ module.exports = {
     if (args.length < 3) {
       return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
     }
-
-    console.log(new Date(message.createdTimestamp).getTimezoneOffset());
-
-    var title = args.slice(2).join(" ");
-    var time = new Date(args[0] + " " + args[1]);
+    
+    var title = args.slice(3).join(" ");
+    var time = new Date(args[0] + " " + args[1] + " " + args[2]);
     var requester = message.author.username;
     var author = message.author;
 
     if (time == "Invalid Date") {
-      return message.channel.send("Invalid time set. Time format must be `yyyy-mm-dd hh:MM`.")
+      return message.channel.send("Invalid time set. " 
+          + "Time format must be `yyyy-mm-dd hh:MM <your timezone>` (Timezone Example: GMT+8).")
     }
 
     if (Date.parse(time) - Date.now() < 0) {

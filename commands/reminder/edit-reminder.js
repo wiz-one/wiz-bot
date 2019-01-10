@@ -38,10 +38,11 @@ module.exports = {
     }
 
     if (argument == "time") {
-      time = new Date(args[2] + " " + args[3]);
+      time = new Date(args[2] + " " + args[3] + " " + args[4]);
       
       if (time == "Invalid Date") {
-        return message.channel.send("Invalid time set. Time format must be `yyyy-mm-dd hh:MM`.")
+        return message.channel.send("Invalid time set. " 
+        + "Time format must be `yyyy-mm-dd hh:MM <your timezone>` (Timezone Example: GMT+8).")
       }
 
       if (Date.parse(time) - Date.now() < 0) {
@@ -108,6 +109,8 @@ async function setReminder(reminder, message) {
   notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
     message.channel.send("@everyone", embedMessage)
+    var index = global.reminders.indexOf(reminder);
+    global.reminders.splice(index, 1);
    }, timeout);
   var removedNotification = global.notifications.get(reminder.id);
   global.notifications.delete(reminder.id);
