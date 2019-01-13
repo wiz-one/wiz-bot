@@ -5,15 +5,11 @@ module.exports = (client = Discord.Client) => {
 
   reply = async function reply(message) {
 
-    if (message.channel.type === "dm" || message.author.bot || message.system) return;
-    if (message.content.startsWith(prefix) || message.content.startsWith(customReactionPrefix)) return;
-    
     var content = message.content.split(/\r?\n/);
-    const nameAndTime = content.shift();
+    const nameAndTime = content.shift(); //Get first line
     content = content.join('\n');
 
-    var members = message.guild.members;
-    members = members.map(m => {
+    const members = message.guild.members.map(m => {
       return {
         name: m.user.username,
         nickname: m.nickname,
@@ -25,89 +21,76 @@ module.exports = (client = Discord.Client) => {
     const regDate2 = /^(Yesterday|Today) at (1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/;
     const regDate3 = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
 
-    var fName, fDp, fTime, fChannel;
-    var isFakeNews = true;
+    var fTime, fChannel, fmember, isDateCorrect;
 
     for (m of members) {
+      const regName = new RegExp(`^${m.nickname || m.name}`);
 
-      const regName1 = new RegExp(`^${m.name}`);
-      const regName2 = new RegExp(`^${m.nickname}`);
+      if (regName.test(nameAndTime)) {
+        fmember = m;
+        fmember.displayName = m.nickname || m.name;
 
-      if (regName1.test(nameAndTime) || regName2.test(nameAndTime)) {
-
-        var displayName;
-
-        if (regName1.test(nameAndTime)) displayName = m.name;
-        if (regName2.test(nameAndTime)) displayName = m.nickname;
-
-        fTime = nameAndTime.slice(displayName.length);
-        if (fTime.includes('BOT'))
-          fTime = fTime.slice(3);
-
+        fTime = nameAndTime.slice(fmember.displayName.length);
+        if ((/^BOT/).test(fTime)) fTime = fTime.slice(3);
         if (regDate1.test(fTime) || regDate2.test(fTime) || regDate3.test(fTime)) {
-          fName = displayName;
-          fDp = m.dp;
+          isDateCorrect = true;
           break;
         }
       }
     }
 
-    if (!fName || !content.length || !fTime) return;
+    if (!fmember || !content.length || !isDateCorrect) return; //if no member mentioned or no content or date is in wrong format 
 
-    message.delete();
+    const allTxtChannels = await message.guild.channels.filter(c => c.type === 'text'); //get all text channels
+    const promisesToAwait = [];
 
-    var aName = message.author.username;
+    for (var c of allTxtChannels.values()) {
+      promisesToAwait.push(loopChannel(c));
+    }
 
-    const aNickname = await message.guild.fetchMember(message.author).then((u) => u.nickname);
-    if (aNickname) aName = aNickname;
+    Promise.all(promisesToAwait).then(async () => {
 
-    var toSend = content + `\n\n\`${fTime} | ${aName}\``;
+      const aNickname = await message.guild.fetchMember(message.author).then((u) => u.nickname);
+      const aName = aNickname || message.author.username;
+      const msgEmbed = new Discord.RichEmbed().setAuthor(fmember.displayName, fmember.dp);
 
-    const msgEmbed = new Discord.RichEmbed()
-      .setAuthor(fName, fDp)
-      .setDescription(toSend)
-
-    message.channel.send(msgEmbed).then(async (msgToEdit) => {
-
-      const allTxtChannels = await message.guild.channels.filter(c => c.type === 'text');
-      const promises = [];
-
-      for (var c of allTxtChannels.values()) {
-
-        const promise = await new Promise(async (resolve, reject) => {
-
-          let allMsg = [];
-          let fetched;
-          let lastMsg = message;
-
-          for (let x = 0; x < 5; x++) {
-            fetched = await c.fetchMessages({ limit: 100, before: lastMsg.id });
-            allMsg = await allMsg.concat(Array.from(fetched.values()));
-            lastMsg = allMsg[allMsg.length - 1];
-          }
-
-          allMsg = allMsg.filter(msg => msg.author.username === fName);
-          allMsg.reverse();
-          allMsg = allMsg.join('\n');
-
-          if (allMsg.includes(content)) {
-            fChannel = c.id;
-            isFakeNews = false;
-          }
-
-          resolve();
-        })
-
-        promises.push(promise);
+      if (fChannel) {
+        content += `\n\n\`${fTime} in \`<#${fChannel}>\` | ${aName}\``;
+      }
+      else {
+        msgEmbed.setThumbnail('https://imgur.com/qviVML1.png');
+        content += `\n\n\`${fTime} | ${aName}\``;
       }
 
-      Promise.all(promises).then(() => {
-        if (isFakeNews) return;
+      message.delete();
 
-        toSend = content + `\n\n\`${fTime} in \`<#${fChannel}>\` | ${aName}\``;
-        msgEmbed.setDescription(toSend);
-        msgToEdit.edit(msgEmbed);
-      })
+      msgEmbed.setDescription(content);
+      message.channel.send(msgEmbed);
     });
+
+
+    function loopChannel(c) {
+      return new Promise(async (resolve, reject) => {
+
+        let lastMsg = message;
+
+        do {
+          //Check whether the content is in every channel
+          var fetched = await c.fetchMessages({ limit: 100, before: lastMsg.id });
+          var allMsg = Array.from(fetched.values());
+          lastMsg = allMsg[allMsg.length - 1];
+
+          allMsg = allMsg.filter(msg => msg.author.username === fmember.name);
+          allMsg.reverse(); //Sort by msg sent first
+          allMsg = allMsg.join('\n'); //Default will join content together
+
+          if (allMsg.includes(content)) fChannel = c.id;
+          if (fChannel) break; //Complete promise if channel holding the content is found                    
+
+        } while (fetched.size == 100) //Check if there are still anymore msg to get
+
+        resolve();
+      });
+    }
   };
 };

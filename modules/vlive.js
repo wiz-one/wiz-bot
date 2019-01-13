@@ -15,7 +15,8 @@ moment.tz.setDefault("Asia/Seoul"); //Set timezone to Seoul
 
 //Model variables
 var nonSubVid = vliveData.nonSubVid;
-var liveVid = vliveData.liveVid;
+var postedLiveVid = vliveData.liveVid.splice(); //clone array w/o reference
+var currentLiveVid = vliveData.liveVid;
 var newVid = vliveData.newVid;
 var newPost = vliveData.newPost;
 
@@ -64,7 +65,7 @@ module.exports = (client = Discord.Client) => {
 
         //=================================================================== LIVE VIDEO =================================
 
-        if (!liveVid.some(e => e.seq === videoSeq) && videoType === 'LIVE') {
+        if (!postedLiveVid.some(e => e.seq === videoSeq) && videoType === 'LIVE') {
 
           const queryConfig = {
             text: 'INSERT INTO livevideo VALUES($1, $2, $3, $4);',
@@ -73,14 +74,17 @@ module.exports = (client = Discord.Client) => {
 
           pool.query(queryConfig).catch(err => console.log('Query to livevideo: ' + err));
 
-          liveVid.push({
+          const liveVideo = {
             seq: videoSeq,
             title: videoTitle,
             img: thumbnail,
             time: uploadDateTime
-          });
+          };
 
-          console.log(JSON.stringify(liveVid));
+          postedLiveVid.push(liveVideo);
+          currentLiveVid.push(liveVideo);
+          console.log('postedLiveVid : ' + postedLiveVid.map(v => v.seq).join(','));
+          console.log('currentLiveVid : ' + JSON.stringify(currentLiveVid));
 
           console.log('Channel is LIVE! =>');
           console.log(channelName);
@@ -236,19 +240,19 @@ module.exports = (client = Discord.Client) => {
 
       //============================================================= LIVE VIDEO ENDED =======================================
 
-      if (liveVid.length) {
+      if (currentLiveVid.length) {
         console.log('Status: Live');
 
-        for (let i = liveVid.length - 1; i >= 0; i--) {
-          const video = liveVid[i];
+        for (let i = currentLiveVid.length - 1; i >= 0; i--) {
+          const video = currentLiveVid[i];
 
           if (!videoList.some(e => e.videoSeq === video.seq)) {
-            liveVid.splice(i, 1);
+            currentLiveVid.splice(i, 1);
             pool.query(`DELETE FROM livevideo WHERE seq = ${video.seq}`);
 
             const uploadTime = moment(video.time);
             var dur = moment.duration(moment().diff(uploadTime)).asSeconds();
-            dur = secondsToHms(dur, false);
+            dur = secondsToHms(dur-10, false);
 
             console.log(`Vlive Just Ended =>`);
             console.log('Id: ' + video.seq);
@@ -330,8 +334,8 @@ module.exports = (client = Discord.Client) => {
       const title = post.title;
       const content = post.content;
       const imgList = post.image_list;
-      const imgToSend = await imgList.filter(img => img.type === 'PHOTO').map(img => img.thumb);
-      const videoToSend = await imgList.filter(img => img.type === 'VIDEO').map(img => img.thumb);
+      const imgToSend = imgList.filter(img => img.type === 'PHOTO').map(img => img.thumb);
+      const videoToSend = imgList.filter(img => img.type === 'VIDEO').map(img => img.thumb);
 
       var typeString = '';
       var contentString = '';
@@ -588,7 +592,7 @@ function editMsgWithSubAndReso(message, msgEmbed, video) {
 
           if (engSub === '**❌**') {
 
-            if(nonSubVid.some(e => e.seq === videoSeq)) return;
+            if (nonSubVid.some(e => e.seq === videoSeq)) return;
 
             const queryConfig2 = {
               text: 'INSERT INTO nonsubvideo VALUES($1, $2, $3, $4, $5, $6);',
