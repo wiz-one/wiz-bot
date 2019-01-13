@@ -5,6 +5,9 @@ module.exports = (client = Discord.Client) => {
 
   reply = async function reply(message) {
 
+    if (message.channel.type === "dm" || message.author.bot || message.system) return;
+    if (message.content.startsWith(prefix) || message.content.startsWith(customReactionPrefix)) return;
+
     var content = message.content.split(/\r?\n/);
     const nameAndTime = content.shift(); //Get first line
     content = content.join('\n');
