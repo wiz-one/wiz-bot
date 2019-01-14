@@ -480,14 +480,17 @@ async function resetKey(video) {
   }, retOption)
     .then(([key, videoId]) => {
       console.log('Reset successfully => ' + video.seq)
+      console.log('Old Id: ' + video.id);
       console.log('Old key: ' + video.key);
+      console.log('New Id: ' + videoId);
       console.log('New key: ' + key);
 
       video.key = key;
+      video.id = videoId;
 
       const queryConfig = {
-        text: 'UPDATE nonsubvideo SET key = $1 WHERE seq = $2;',
-        values: [key, video.seq]
+        text: 'UPDATE nonsubvideo SET key = $1, id = $2 WHERE seq = $3;',
+        values: [key, videoId, video.seq]
       };
 
       pool.query(queryConfig).catch(err => console.log('Error Update key nonSubVideo: ' + err));
