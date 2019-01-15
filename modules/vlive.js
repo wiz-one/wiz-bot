@@ -247,27 +247,33 @@ module.exports = (client = Discord.Client) => {
           const video = currentLiveVid[i];
 
           if (!videoList.some(e => e.videoSeq === video.seq)) {
-            currentLiveVid.splice(i, 1);
-            pool.query(`DELETE FROM livevideo WHERE seq = ${video.seq}`);
 
             const uploadTime = moment(video.time);
             var dur = moment.duration(moment().diff(uploadTime)).asSeconds();
-            dur = secondsToHms(dur-10, false);
 
-            console.log(`Vlive Just Ended =>`);
-            console.log('Id: ' + video.seq);
-            console.log('Title: ' + video.title);
-            console.log('Thumbnail: ' + video.img);
-            console.log('Lasted for: ' + dur);
+            //Check if the live have lasted more than a minute because occasional premature end-new live happened at api request
+            if (dur > 60) {
 
-            const msgEmbed = new Discord.RichEmbed()
-              .setColor('#838a8e')
-              .setTitle(video.title)
-              .setAuthor(`${channelName} - Vlive Ended`, 'https://imgur.com/wsC83yq.png', channelUrl)
-              .setThumbnail(video.img)
-              .setFooter('Lasted for: ' + dur);
+              currentLiveVid.splice(i, 1);
+              pool.query(`DELETE FROM livevideo WHERE seq = ${video.seq}`);
 
-            discordChannel.send(msgEmbed);
+              dur = secondsToHms(dur - 10, false); //dur-10 to get a more accurate timing 
+
+              console.log(`Vlive Just Ended =>`);
+              console.log('Id: ' + video.seq);
+              console.log('Title: ' + video.title);
+              console.log('Thumbnail: ' + video.img);
+              console.log('Lasted for: ' + dur);
+
+              const msgEmbed = new Discord.RichEmbed()
+                .setColor('#838a8e')
+                .setTitle(video.title)
+                .setAuthor(`${channelName} - Vlive Ended`, 'https://imgur.com/wsC83yq.png', channelUrl)
+                .setThumbnail(video.img)
+                .setFooter('Lasted for: ' + dur);
+
+              discordChannel.send(msgEmbed);
+            }
           }
         }
       } else {
