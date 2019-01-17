@@ -3,5 +3,13 @@
   "customReactionPrefix": "*",
   "token": "dummy",
   "reactionFilePath": "data/reactions.json",
-  "reminderFilePath": "data/reminders.json"
+  "reminderFilePath": "data/reminders.json",
+  "proxiesFilePath": "./data/proxies.txt",
+  "dbCredentials": {
+    "user": "gyonohthftulvt",
+    "host": "ec2-23-21-188-236.compute-1.amazonaws.com",
+    "database": "d5ks3ads1q2qio",
+    "port": "5432",
+    "ssl": true
+  }
 }
