@@ -1,17 +1,20 @@
 const fs = require("fs");
 const Discord = require("discord.js");
+const { reminderFilePath, dbCredentials } = require("./../config.json");
+const pg = require('pg');
 
-const { reminderFilePath } = require("./../config.json");
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
 
 const ONE_MIN = 60000;
 
 module.exports = (client = Discord.Client) => {
-  initialise = function initialise() {
+  initialise = async function initialise() {
     require("./../modules/reminder.js")(client);
 
     console.log("Initialising");
 
-    global.reminders = readReminders();
+    await readReminders().then((results) => global.reminders = results);
     global.notifications = new Map();
 
     setInterval(reminder, 30 * ONE_MIN);
@@ -19,8 +22,19 @@ module.exports = (client = Discord.Client) => {
   }
 }
 
+// function readReminders() {
+//   var file = __dirname + "/../" + reminderFilePath;
+//   obj = JSON.parse(fs.readFileSync(file, 'utf8'));
+//   return obj.reminders;
+// }
+
 function readReminders() {
-  var file = __dirname + "/../" + reminderFilePath;
-  obj = JSON.parse(fs.readFileSync(file, 'utf8'));
-  return obj.reminders;
+  return new Promise((resolve, reject) => {
+    pool.query(`SELECT * FROM reminders`, (err, res) => {
+      if (err) {
+        reject(console.error(err));
+      }
+      resolve(res.rows);
+    });
+  });
 }

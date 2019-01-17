@@ -1,8 +1,11 @@
-const fs = require("fs");
 const Discord = require("discord.js");
-const { reminderFilePath } = require("../../config.json");
+const { dbCredentials } = require("../../config.json");
+const pg = require('pg');
 
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
+const insertQuery = "INSERT INTO reminders (title, time, requested_by, channel_id, guild_id) VALUES ";
 
 module.exports = {
   name: 'remind',
@@ -76,14 +79,6 @@ function formEmbedMessage(reminder, author) {
   return embedMessage;
 }
 
-async function save(reminder) {
-  var file = __dirname + "/../../" + reminderFilePath;
-  var json = {};
-  global.reminders.push(reminder);
-  json.reminders = global.reminders;
-  fs.writeFileSync(file, JSON.stringify(json));
-}
-
 function formReminder(reminder) {
   const embedMessage = new Discord.RichEmbed()
     .setColor('#da004e')
@@ -104,4 +99,11 @@ async function setReminder(reminder, message) {
    }, timeout);
   global.reminders.push(reminder);
   global.notifications.set(reminder.id, notification);
+}
+
+async function save(reminder) {
+  var queryStr = `('${ reminder.title }', '${ reminder.time }', '${ reminder.requested_by }',`
+  + `'${ reminder.channel_id }', '${ reminder.guild_id }')`;
+  global.reminders.push(reminder);
+  pool.query(insertQuery + queryStr);
 }

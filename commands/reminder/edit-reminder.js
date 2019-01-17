@@ -1,8 +1,12 @@
-const fs = require("fs");
 const Discord = require("discord.js");
-const { reminderFilePath } = require("../../config.json");
+const { dbCredentials } = require("../../config.json");
+const pg = require('pg');
+const util = require('util');
 
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
+const updateQuery = "UPDATE reminders SET title = '%s', time = '%s' WHERE id = ";
 
 module.exports = {
   name: 'edit-reminder',
@@ -57,14 +61,14 @@ module.exports = {
       editedReminder.title = title;
     }
 
+    save(editedReminder);
+
     var embedMessage = formEmbedMessage(editedReminder, author);
     message.channel.send(embedMessage)
 
     if (Date.parse(time) - Date.now() <= 30 * ONE_MIN) {
       return setReminder(editedReminder, message);
     }
-
-    save(reminder, editedReminder);
   }
 }
 
@@ -79,18 +83,6 @@ function formEmbedMessage(reminder, author) {
     .addField('Time', date.toString())
     .setTimestamp();
   return embedMessage;
-}
-
-async function save(reminder, editedReminder) {
-  var file = __dirname + "/../../" + reminderFilePath;
-  var json = {};
-  var index = -1;
-
-  index = global.reminders.indexOf(reminder);
-
-  global.reminders.splice(index, 1, editedReminder);
-  json.reminders = global.reminders;
-  fs.writeFileSync(file, JSON.stringify(json));
 }
 
 function formReminder(reminder) {
@@ -116,4 +108,11 @@ async function setReminder(reminder, message) {
   global.notifications.delete(reminder.id);
   clearTimeout(removedNotification);
   global.notifications.set(reminder.id, notification);
+}
+
+async function save(editedReminder) {
+  var queryStr = util.format(updateQuery, editedReminder.title, editedReminder.time,
+      editedReminder.id);
+  console.log(queryStr)
+  pool.query(queryStr);
 }

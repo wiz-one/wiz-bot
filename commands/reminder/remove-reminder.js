@@ -1,6 +1,10 @@
-const fs = require("fs");
 const Discord = require("discord.js");
-const { reminderFilePath } = require("../../config.json");
+const { dbCredentials } = require("../../config.json");
+const pg = require('pg');
+
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
+const deleteQuery = "DELETE FROM reminders WHERE id = ";
 
 module.exports = {
   name: 'remove-reminder',
@@ -21,10 +25,10 @@ module.exports = {
       return message.channel.send("Index not found!");
     }
 
+    save(id);
+
     var embedMessage = formEmbedMessage(result);
     message.channel.send(embedMessage)
-
-    save();
   }
 }
 
@@ -48,9 +52,6 @@ function removeReminder(id) {
   return removingReminder;
 }
 
-async function save() {
-  var file = __dirname + "/../../" + reminderFilePath;
-  obj.reminders = global.reminders;
-  json = JSON.stringify(obj);
-  fs.writeFileSync(file, json);
+async function save(id) {
+  pool.query(deleteQuery + id);
 }
