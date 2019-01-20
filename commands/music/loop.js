@@ -8,16 +8,18 @@ module.exports = {
     }
 
     connection = message.guild.voiceConnection;
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
 
     if (!connection) {
       message.reply('I am not connected to the channel!');
     }
 
-    if (!global.loop) {
-      global.loop = true;
+    if (!guild.loop) {
+      guild.loop = true;
       message.channel.send('Loop Enabled!');
     } else {
-      global.loop = false;
+      guild.loop = false;
       message.channel.send('Loop Disabled!');
     }
   }

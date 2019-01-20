@@ -8,6 +8,12 @@ const pool = new pg.Pool(dbCredentials);
 
 const ONE_MIN = 60000;
 
+let guild = { 
+  playlist: new Array(), 
+  currentPlaying: null,
+  loop: false
+};
+
 module.exports = (client = Discord.Client) => {
   initialise = async function initialise() {
     require("./../modules/reminder.js")(client);
@@ -19,6 +25,11 @@ module.exports = (client = Discord.Client) => {
 
     setInterval(reminder, 30 * ONE_MIN);
     reminder();
+    initGuildsVariables(client).then((results) => {
+        global.guilds = results;
+        console.log(global.guilds.size);
+      });
+
   }
 }
 
@@ -27,6 +38,14 @@ module.exports = (client = Discord.Client) => {
 //   obj = JSON.parse(fs.readFileSync(file, 'utf8'));
 //   return obj.reminders;
 // }
+async function initGuildsVariables(client) {
+  let guilds = new Map();
+  client.guilds.forEach((value, key, arr) => {
+    guilds.set(key, guild);
+  })
+  
+  return guilds;
+}
 
 function readReminders() {
   return new Promise((resolve, reject) => {
