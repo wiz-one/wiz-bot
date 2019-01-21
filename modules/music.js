@@ -41,12 +41,12 @@ module.exports = {
       let nextSong;
       if (guild.playlist.length) {
         nextSong = guild.playlist.shift();
-        if (global.loop) {
+        if (guild.loop) {
           guild.playlist.push(currentPlaying);
         }
         dispatcher = module.exports.play(nextSong.url, message);
       } else {
-        if (global.loop) {
+        if (guild.loop) {
           dispatcher = module.exports.play(guild.currentPlaying.url, message);
           return;
         }
