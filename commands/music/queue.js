@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+let guild_id, guild;
 
 module.exports = {
   name: 'queue',
@@ -18,6 +19,9 @@ module.exports = {
 		}
 
     connection = message.guild.voiceConnection;
+    guild_id = message.guild.id;
+
+    guild = global.guilds.get(guild_id);
 
     if (!connection) {
       connection = await message.member.voiceChannel.join();
@@ -26,8 +30,8 @@ module.exports = {
 
     dispatcher = message.guild.voiceConnection.dispatcher;
 
-    if (global.playlist.length || global.currentPlaying) {
-      var embedMessage = formEmbedMessage();
+    if (guild.playlist.length || guild.currentPlaying) {
+      var embedMessage = formEmbedMessage(guild);
       return message.channel.send(embedMessage);
     }
 
@@ -36,25 +40,27 @@ module.exports = {
   }
 }
 
-function formEmbedMessage() {
+function formEmbedMessage(guild) {
   var embedMessage = new Discord.RichEmbed();
   var string = "";
 
   embedMessage
     .setTitle("Queue")
     .addField("Now Playing", 
-        `[${global.currentPlaying.title}](${global.currentPlaying.url}) | Requested by: ${global.currentPlaying.author}`);
+        `[${guild.currentPlaying.title}](${guild.currentPlaying.url}) | ` 
+        + `Requested by: ${guild.currentPlaying.author}`);
 
-  if (global.playlist.length) {
+  if (guild.playlist.length) {
     var i = 1;
-    for (song of global.playlist) {
-      string += `\n${i++}. [${song.title}](${song.video_url}) | Requested by: ${song.author.username}\n`;
+    for (song of guild.playlist) {
+      string += `\n${i++}. [${song.title}](${song.video_url}) | ` 
+          + `Requested by: ${song.author.username}\n`;
     }
   
     embedMessage.addField("Coming up: ", string);
   }
     
-  embedMessage.addField("Songs in Queue: ", global.playlist.length)
+  embedMessage.addField("Songs in Queue: ", guild.playlist.length)
     .setTimestamp();
   
   return embedMessage;

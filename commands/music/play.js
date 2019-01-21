@@ -1,4 +1,3 @@
-const ytdl = require('ytdl-core');
 const Music = require('../../modules/music.js');
 
 let { searchYoutube } = require('./../../modules/searchYoutube.js');
@@ -23,6 +22,8 @@ module.exports = {
 		}
 
     connection = message.guild.voiceConnection;
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
 
     var queryString = args.join(' ');
 
@@ -33,8 +34,8 @@ module.exports = {
 
     dispatcher = message.guild.voiceConnection.dispatcher;
 
-    if (!global.playlist) {
-      global.playlist = new Array();
+    if (!guild.playlist) {
+      guild.playlist = new Array();
     }
 
     videoUrl = queryString;

@@ -3,9 +3,12 @@ module.exports = {
   description: 'Request the bot to leave the voice channel.',
   execute(message, args) {
     if (message.guild.voiceConnection) {
-      global.currentPlaying = null;
-      global.playlist = new Array();
-      global.loop = false;
+      let guild_id = message.guild.id;
+      let guild = global.guilds.get(guild_id)
+
+      guild.currentPlaying = null;
+      guild.playlist = new Array();
+      guild.loop = false;
       message.member.voiceChannel.leave();
       message.reply('I have successfully disconnected from the channel!');
     } else {

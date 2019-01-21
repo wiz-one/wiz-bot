@@ -6,6 +6,12 @@ dbCredentials.password = process.env.db_password;
 const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
 
+let guild = { 
+  playlist: new Array(), 
+  currentPlaying: null,
+  loop: false
+};
+
 module.exports = (client = Discord.Client) => {
   initialise = async function initialise() {
     require("./../modules/reminder.js")(client);
@@ -14,12 +20,25 @@ module.exports = (client = Discord.Client) => {
 
     global.notifications = new Map();
 
+    initGuildsVariables(client).then((results) => {
+        global.guilds = results;
+      });
+
     readReminders().then((results) => {
         global.reminders = results;
         setInterval(reminder, 30 * ONE_MIN);
         reminder();
       });
   }
+}
+
+async function initGuildsVariables(client) {
+  let guilds = new Map();
+  client.guilds.forEach((value, key, arr) => {
+    guilds.set(key, guild);
+  })
+  
+  return guilds;
 }
 
 function readReminders() {

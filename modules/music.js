@@ -20,12 +20,15 @@ youtube.on("play", (url, message) => {
 module.exports = {
   youtube: youtube,
   play(song, message) {
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
+
     const stream = ytdl(song, { quality: 'highest', filter : 'audioonly' });
     ytdl.getBasicInfo(song)
       .then((info) => {
-        var embedMessage = formEmbedMessage(message.author, info, true);
+        var embedMessage = formEmbedMessage(message.author, info, true, guild.playlist);
         message.channel.send(embedMessage);
-        global.currentPlaying = { url:song, title:info.title, author:message.author }
+        guild.currentPlaying = { url:song, title:info.title, author:message.author };
       })
       .catch((err) => {
         return console.log(err);
@@ -36,18 +39,18 @@ module.exports = {
   
     dispatcher.on('end', () => {
       let nextSong;
-      if (global.playlist.length) {
-        nextSong = global.playlist.shift();
+      if (guild.playlist.length) {
+        nextSong = guild.playlist.shift();
         if (global.loop) {
-          global.playlist.push(global.currentPlaying);
+          guild.playlist.push(currentPlaying);
         }
         dispatcher = module.exports.play(nextSong.url, message);
       } else {
         if (global.loop) {
-          dispatcher = module.exports.play(global.currentPlaying.url, message);
+          dispatcher = module.exports.play(guild.currentPlaying.url, message);
           return;
         }
-        global.currentPlaying = null;
+        guild.currentPlaying = null;
       }
     });
     
@@ -59,10 +62,13 @@ module.exports = {
     return dispatcher;
   },
   queue(videoUrl, message) {
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
+
     ytdl.getBasicInfo(videoUrl)
       .then((info) => {
-        global.playlist.push({ url:videoUrl, title:info.title, author:message.author });
-        var embedMessage = formEmbedMessage(message.author, info, false);
+        guild.playlist.push({ url:videoUrl, title:info.title, author:message.author });
+        var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
         message.channel.send(embedMessage);
       })
       .catch((err) => {
@@ -71,10 +77,13 @@ module.exports = {
     
   },
   queueTop(videoUrl, message) {
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
+
     ytdl.getBasicInfo(videoUrl)
       .then((info) => {
-        global.playlist.unshift({ url:videoUrl, title:info.title, author:message.author });
-        var embedMessage = formEmbedMessage(message.author, info, false);
+        guild.playlist.unshift({ url:videoUrl, title:info.title, author:message.author });
+        var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
         message.channel.send(embedMessage);
       })
       .catch((err) => {
@@ -83,9 +92,10 @@ module.exports = {
   }
 }
 
-function formEmbedMessage(author, videoInfo, nowPlaying) {
+function formEmbedMessage(author, videoInfo, nowPlaying, playlist) {
   var title = "";
   var embedMessage = new Discord.RichEmbed();
+  let thumbnail = getThumbnail(videoInfo);
   if (nowPlaying) {
     title = "Now Playing 🎵";
   } else {
@@ -97,12 +107,18 @@ function formEmbedMessage(author, videoInfo, nowPlaying) {
     .setTitle(title)
     .setDescription(`[${videoInfo.title}](${videoInfo.video_url})`)
     .setColor('#da004e')
-    .setThumbnail(videoInfo.thumbnail_url)
+    .setThumbnail(thumbnail)
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .addField('Author: ', videoInfo.author.name)
     .addField('Length: ', length)
-    .addField("Songs in Queue: ", global.playlist.length)
+    .addField("Songs in Queue: ", playlist.length)
     .setTimestamp();
   
   return embedMessage;
+}
+
+function getThumbnail(videoInfo) {
+  var regex = /default/gi;
+  let thumbnail = videoInfo.thumbnail_url.replace(regex, "hqdefault");
+  return thumbnail;
 }
