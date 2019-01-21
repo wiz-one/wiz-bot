@@ -27,7 +27,6 @@ module.exports = (client = Discord.Client) => {
     reminder();
     initGuildsVariables(client).then((results) => {
         global.guilds = results;
-        console.log(global.guilds.size);
       });
 
   }
