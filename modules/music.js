@@ -120,6 +120,5 @@ function formEmbedMessage(author, videoInfo, nowPlaying, playlist) {
 function getThumbnail(videoInfo) {
   var regex = /default/gi;
   let thumbnail = videoInfo.thumbnail_url.replace(regex, "hqdefault");
-  console.log(thumbnail);
   return thumbnail;
 }

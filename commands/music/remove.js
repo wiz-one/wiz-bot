@@ -19,23 +19,23 @@ module.exports = {
       message.reply('I am not connected to the channel!');
     }
 
-    if (index < guild.playlist && index >= 0) {
-      removeMusic(guild, message);
+    if (index < guild.playlist.length && index >= 0) {
+      removeMusic(guild, index, message);
     } else {
       message.reply('Invalid index provided! Index must be existed in the playlist.');
     }
   }
 }
 
-function removeMusic(guild, index) {
+function removeMusic(guild, index, message) {
   let removedMusic = guild.playlist[index];
-  guild.playlist.splice(index, 1);
   let videoUrl = removedMusic.url;
+  guild.playlist.splice(index, 1);
 
   ytdl(videoUrl);
   ytdl.getBasicInfo(videoUrl)
       .then((info) => {
-        var embedMessage = formEmbedMessage(info);
+        var embedMessage = formEmbedMessage(message.author, info);
         message.channel.send(embedMessage);
         return info.title;
       })
@@ -44,16 +44,24 @@ function removeMusic(guild, index) {
       });
 }
 
-function formEmbedMessage(videoInfo) {
+function formEmbedMessage(author, videoInfo) {
   var embedMessage = new Discord.RichEmbed();
+  let thumbnail = getThumbnail(videoInfo);
   length_seconds = videoInfo.length_seconds;
   length = parseInt(length_seconds/60, 10) + ":" + ("0" + (length_seconds % 60)).slice(-2);
   embedMessage
     .setTitle("Song Removed!")
-    .setDescription(`[${videoInfo.title}](${videoInfo.video.url})`)
+    .setDescription(`[${videoInfo.title}](${videoInfo.video_url})`)
     .setColor('#da004e')
-    .setThumbnail(videoInfo.thumbnail.url)
+    .setThumbnail(thumbnail)
+    .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .setTimestamp();
   
   return embedMessage;
+}
+
+function getThumbnail(videoInfo) {
+  var regex = /default/gi;
+  let thumbnail = videoInfo.thumbnail_url.replace(regex, "hqdefault");
+  return thumbnail;
 }
