@@ -1,5 +1,5 @@
 const Discord = require("discord.js");
-const { dbCredentials } = require("../../config.json");
+const { dbCredentials } = require("./../config.json");
 const pg = require('pg');
 
 dbCredentials.password = process.env.db_password;
