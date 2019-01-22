@@ -14,23 +14,36 @@ var TOKEN_PATH = TOKEN_DIR + 'youtube-nodejs-quickstart.json';
 let videoId;
 
 module.exports = {
-  searchYoutube: function searchYoutube(q, message, event) {
-    try {
-      var content = fs.readFileSync(__dirname + '/../client_secret.json');
-    } catch (err) {
-      console.log('Error loading client secret file: ' + err);
-      return;
-    }
-  
-    // Authorize a client with the loaded credentials, then call the YouTube API.
-    var oauth2Client = authorize(JSON.parse(content));
+  searchVideo: function searchVideo(q, message, event) {
+    var oauth2Client = initialise();
   
     searchListByKeyword(oauth2Client, {'params': {'maxResults': '5',
       'part': 'snippet',
       'q': q,
       'type': 'forDeveloper'}}, message, event);
+  },
+  getPlaylist: function getPlaylist(q, message, event) {
+    var oauth2Client = initialise();
+  
+    playlistItemsListByPlaylistId(oauth2Client, {'params': {
+      'part': 'contentDetails',
+      'maxResults': '50',
+      'playlistId': q}}, message, event);
   }
 };
+
+function initialise() {
+  try {
+    var content = fs.readFileSync(__dirname + '/../client_secret.json');
+  } catch (err) {
+    console.log('Error loading client secret file: ' + err);
+    return;
+  }
+
+  // Authorize a client with the loaded credentials, then call the YouTube API.
+  var oauth2Client = authorize(JSON.parse(content));
+  return oauth2Client;
+}
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -127,8 +140,6 @@ function removeEmptyParameters(params) {
   return params;
 }
 
-// Sample nodejs code for search.list
-
 function searchListByKeyword(auth, requestData, message, event) {
   var service = google.youtube('v3');
   var parameters = removeEmptyParameters(requestData['params']);
@@ -139,7 +150,7 @@ function searchListByKeyword(auth, requestData, message, event) {
       for (results of response.data.items) {
         if (results.id.kind == 'youtube#video') {
           videoId = results.id.videoId;
-          return youtube.emit(event, youtubeUrl + videoId, message)
+          return youtube.emit(event, youtubeUrl + videoId, message);
         }
       }
     });
@@ -148,3 +159,25 @@ function searchListByKeyword(auth, requestData, message, event) {
     return;
   }
 }
+
+function playlistItemsListByPlaylistId(auth, requestData, message, event) {
+  var service = google.youtube('v3');
+  var parameters = removeEmptyParameters(requestData['params']);
+  parameters['auth'] = auth;
+
+  var videoUrls = new Array();
+
+  service.playlistItems.list(parameters, function(err, response) {
+    if (err) {
+      console.log('The API returned an error: ' + err);
+      return;
+    }
+
+    for (videos of response.data.items) {
+      videoId = videos.contentDetails.videoId;
+      videoUrls.push(youtubeUrl + videoId);
+    }
+    youtube.emit(event, videoUrls, message);
+  });
+}
+

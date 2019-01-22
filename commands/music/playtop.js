@@ -1,6 +1,6 @@
 const Music = require('../../modules/music.js');
 
-let { searchYoutube } = require('./../../modules/searchYoutube.js');
+let { searchYoutube } = require('../../modules/youtube.js');
 
 let dispatcher, videoUrl, youtube;
 

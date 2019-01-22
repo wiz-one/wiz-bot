@@ -1,6 +1,6 @@
 const music = require('./../modules/music');
 
-let { searchYoutube } = require('./../modules/searchYoutube.js');
+let { searchYoutube } = require('./../modules/youtube.js');
 
 module.exports = {
   name: 'youtube',
