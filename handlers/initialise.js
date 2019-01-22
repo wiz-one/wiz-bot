@@ -9,7 +9,9 @@ const ONE_MIN = 60000;
 let guild = { 
   playlist: new Array(), 
   currentPlaying: null,
-  loop: false
+  loop: false,
+  notify: false,
+  dispatcher: null
 };
 
 module.exports = (client = Discord.Client) => {
