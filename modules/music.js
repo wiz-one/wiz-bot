@@ -2,7 +2,8 @@ const EventEmitter = require('events');
 const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 
-const streamOptions = { seek: 0, volume: 1 };
+const streamOptions = { seek: 0, volume: 1, highWaterMark: 1 };
+const downloadOptions = { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 };
 
 let dispatcher;
 
@@ -11,10 +12,24 @@ class Youtube extends EventEmitter {}
 youtube = new Youtube();
 
 youtube.on("play", (url, message) => {
-      if (!dispatcher || dispatcher.destroyed) {
+      let guild_id = message.guild.id;
+      let guild = global.guilds.get(guild_id);
+      if (!guild.dispatcher || guild.dispatcher.destroyed) {
         return module.exports.play(url, message);
       }
       module.exports.queue(url, message);
+    });
+
+youtube.on("playPlaylist", (urls, message) => {
+      let guild_id = message.guild.id;
+      let guild = global.guilds.get(guild_id);
+      for (url of urls) {
+        if (!guild.dispatcher || guild.dispatcher.destroyed) {
+          module.exports.play(url, message);
+          continue;
+        }
+        module.exports.queue(url, message, true);
+      }
     });
 
 module.exports = {
@@ -23,11 +38,13 @@ module.exports = {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
 
-    const stream = ytdl(song, { quality: 'highest', filter : 'audioonly' });
+    const stream = ytdl(song, downloadOptions, );
     ytdl.getBasicInfo(song)
       .then((info) => {
-        var embedMessage = formEmbedMessage(message.author, info, true, guild.playlist);
-        message.channel.send(embedMessage);
+        if (guild.notify) {
+          var embedMessage = formEmbedMessage(message.author, info, true, guild.playlist);
+          message.channel.send(embedMessage);
+        }
         guild.currentPlaying = { url:song, title:info.title, author:message.author };
       })
       .catch((err) => {
@@ -35,41 +52,31 @@ module.exports = {
       });
     
     connection = message.guild.voiceConnection;
-    dispatcher = connection.playStream(stream, streamOptions);
+    guild.dispatcher = connection.playStream(stream, streamOptions);
   
-    dispatcher.on('end', () => {
-      let nextSong;
-      if (guild.playlist.length) {
-        nextSong = guild.playlist.shift();
-        if (guild.loop) {
-          guild.playlist.push(currentPlaying);
-        }
-        dispatcher = module.exports.play(nextSong.url, message);
-      } else {
-        if (guild.loop) {
-          dispatcher = module.exports.play(guild.currentPlaying.url, message);
-          return;
-        }
-        guild.currentPlaying = null;
-      }
+    guild.dispatcher.on('end', () => {
+      processQueue(message);
     });
     
-    dispatcher.on('error', e => {
+    guild.dispatcher.on('error', e => {
       // Catch any errors that may arise
       console.log(e);
     });
 
     return dispatcher;
   },
-  queue(videoUrl, message) {
+  queue(videoUrl, message, isPlayist) {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
 
     ytdl.getBasicInfo(videoUrl)
       .then((info) => {
         guild.playlist.push({ url:videoUrl, title:info.title, author:message.author });
-        var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
-        message.channel.send(embedMessage);
+
+        if (!isPlayist) {
+          var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
+          message.channel.send(embedMessage);
+        }
       })
       .catch((err) => {
         return console.log(err);
@@ -89,6 +96,25 @@ module.exports = {
       .catch((err) => {
         return console.log(err);
       });
+  }
+}
+
+function processQueue(message) {
+  let guild_id = message.guild.id;
+  let guild = global.guilds.get(guild_id);
+
+  if (guild.playlist.length) {
+    nextSong = guild.playlist.shift();
+    if (guild.loop) {
+      guild.playlist.push(guild.currentPlaying);
+    }
+    guild.dispatcher = module.exports.play(nextSong.url, message);
+  } else {
+    if (guild.loop) {
+      guild.dispatcher = module.exports.play(guild.currentPlaying.url, message);
+      return;
+    }
+    guild.currentPlaying = null;
   }
 }
 
