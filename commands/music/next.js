@@ -12,7 +12,7 @@ module.exports = {
     let guild = global.guilds.get(guild_id);
 
     if (!connection) {
-      message.reply('I am not connected to the channel!');
+      return message.reply('I am not connected to the channel!');
     }
 
     if (guild.playlist.length) {
