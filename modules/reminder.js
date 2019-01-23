@@ -22,7 +22,8 @@ async function sendEmbedMessage(reminder, client) {
     .setDescription(reminder.title)
     .addField('Time', date.toString())
     .setTimestamp();
-  client.channels.find("id", reminder.channel_id).send("@everyone", embedMessage);
+  client.channels.find("id", reminder.channel_id)
+      .send(reminder.mention, embedMessage);
 }
 
 async function setReminder(client) {
