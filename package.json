@@ -22,7 +22,8 @@
     "ytdl-core": "^0.28.2"
   },
   "engines": {
-    "node": "8.14.0"
+    "node": "8.14.0",
+    "npm": "6.2.0"
   },
   "scripts": {
     "start": "node .",
