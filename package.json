@@ -21,6 +21,9 @@
     "twemoji": "^11.2.0",
     "ytdl-core": "^0.28.2"
   },
+  "engines": {
+    "node": "8.14.0"
+  },
   "scripts": {
     "start": "node .",
     "test": "echo \"Error: no test specified\" && exit 1",
