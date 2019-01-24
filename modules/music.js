@@ -14,7 +14,7 @@ youtube = new Youtube();
 youtube.on("play", (url, message) => {
       let guild_id = message.guild.id;
       let guild = global.guilds.get(guild_id);
-      if (!guild.dispatcher || guild.dispatcher.destroyed) {
+      if (!guild.currentPlaying) {
         return module.exports.play(url, message);
       }
       module.exports.queue(url, message);
@@ -38,7 +38,7 @@ module.exports = {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
 
-    const stream = ytdl(song, downloadOptions, );
+    const stream = ytdl(song, downloadOptions);
     ytdl.getBasicInfo(song)
       .then((info) => {
         if (guild.notify) {
