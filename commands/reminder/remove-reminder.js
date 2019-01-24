@@ -39,6 +39,7 @@ function formEmbedMessage(reminder) {
     .setTitle("Reminder Removed")
     .setDescription(reminder.title)
     .addField('Time', date.toString())
+    .addField('Mention', reminder.mention)
     .setTimestamp();
   return embedMessage;
 }

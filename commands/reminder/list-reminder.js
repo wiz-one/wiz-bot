@@ -27,7 +27,7 @@ function findReminder(reminders, guild_id) {
     if (reminder.guild_id == guild_id) {
       let date = new Date(reminder.time);
       string += "\n" + reminder.id + " | " + reminder.title 
-          + " | " + date.toString()  + "\n";
+          + " | " + date.toString() + " | " + reminder.mention + "\n";
     }
   }
   return string;
