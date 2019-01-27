@@ -33,15 +33,15 @@ async function setReminder(client) {
     if (timeout <= 30 * ONE_MIN && timeout >= 0) {
       notification = setTimeout(() => {
         sendEmbedMessage(reminder, client);
+        save(reminder.id);
         global.reminders.splice(i, 1);
-        save(reminder);
       }, timeout);
-      i++;
       global.notifications.set(reminder.id, notification);
     }
+    i++;
   }
 }
 
-async function save(reminder) {
-  pool.query(deleteQuery + reminder.id);
+async function save(id) {
+  pool.query(deleteQuery + id);
 }
