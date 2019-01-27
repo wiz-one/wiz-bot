@@ -1,11 +1,13 @@
 const Discord = require("discord.js");
 const { dbCredentials } = require("../../config.json");
 const pg = require('pg');
+const util = require('util');
 
 dbCredentials.password = process.env.db_password;
 const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
-const insertQuery = "INSERT INTO reminders (title, time, requested_by, mention, channel_id, guild_id) VALUES ";
+const insertQuery = "INSERT INTO reminders (title, time, requested_by, mention, channel_id, guild_id)" + 
+    " VALUES ('%s', '%s', '%s', '%s', '%s', '%s') RETURNING id";
 
 module.exports = {
   name: 'remind',
@@ -21,7 +23,6 @@ module.exports = {
     if (args.length < 3) {
       return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
     }
-    
     
     var time = new Date(args[0] + " " + args[1] + " " + args[2]);
     var requester = message.author.username;
@@ -49,27 +50,21 @@ module.exports = {
 
     var obj = formJsonObj(title, time, requester, mention,
         message.channel.id, message.channel.guild.id);
+
+    reminder = await save(obj);
         
-    var embedMessage = formEmbedMessage(obj, author);
+    var embedMessage = formEmbedMessage(reminder, author);
     message.channel.send(embedMessage)
 
     if (Date.parse(time) - Date.now() <= 30 * ONE_MIN) {
       return setReminder(obj, message);
     }
-
-    save(obj);
   }
 }
 
 function formJsonObj(title, time, requester, mention, channel_id, guild_id) {
-  var id = 1;
-
-  if (global.reminders.length) {
-    id = global.reminders[global.reminders.length - 1].id + 1;
-  }
-
   var data = {
-    id: id,
+    id: 0,
     title: title,
     time: time,
     requested_by: requester,
@@ -117,8 +112,11 @@ async function setReminder(reminder, message) {
 }
 
 async function save(reminder) {
-  var queryStr = `('${ reminder.title }', '${ reminder.time }', '${ reminder.requested_by }',`
-  + `'${ reminder.mention }', '${ reminder.channel_id }', '${ reminder.guild_id }')`;
+  var queryStr = util.format(insertQuery, reminder.title, reminder.time, reminder.requested_by, reminder.mention, 
+      reminder.channel_id, reminder.guild_id);
+  await pool.query(queryStr).then((results) => {
+      reminder.id = results.rows[0].id;
+  });
   global.reminders.push(reminder);
-  pool.query(insertQuery + queryStr);
+  return reminder;
 }
