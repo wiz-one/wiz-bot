@@ -1,7 +1,6 @@
-const ytdl = require('ytdl-core');
 const Music = require('../../modules/music.js');
 
-let { searchYoutube } = require('./../../modules/searchYoutube.js');
+let { searchVideo, getPlaylist } = require('../../modules/youtube.js');
 
 let dispatcher, videoUrl, youtube;
 
@@ -23,6 +22,8 @@ module.exports = {
 		}
 
     connection = message.guild.voiceConnection;
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
 
     var queryString = args.join(' ');
 
@@ -33,15 +34,21 @@ module.exports = {
 
     dispatcher = message.guild.voiceConnection.dispatcher;
 
-    if (!global.playlist) {
-      global.playlist = new Array();
+    if (!guild.playlist) {
+      guild.playlist = new Array();
     }
 
     videoUrl = queryString;
     youtube = Music.youtube;
 
+    if (queryString.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
+      let playlistId = queryString.split("=")[1];
+      await getPlaylist(playlistId, message, "playPlaylist");
+      return message.channel.send(`✅ Playlist has been added to the queue!`);
+		}
+
     if (!queryString.match(/^https?:\/\/(www.youtube.com|youtube.com)/)) {
-      return searchYoutube(queryString, message, "play");
+      return searchVideo(queryString, message, "play");
     }
 
     if (!dispatcher) {

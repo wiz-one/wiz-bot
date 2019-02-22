@@ -1,6 +1,6 @@
 module.exports = {
-  name: 'loop',
-  description: 'Request the bot to loop the song in the playlist.',
+  name: 'notify',
+  description: 'Request the bot to notify when the next song is played.',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {
@@ -15,12 +15,12 @@ module.exports = {
       message.reply('I am not connected to the channel!');
     }
 
-    if (!guild.loop) {
-      guild.loop = true;
-      message.channel.send('Loop Enabled!');
+    if (!guild.notify) {
+      guild.notify = true;
+      message.channel.send('Notification Enabled!');
     } else {
-      guild.loop = false;
-      message.channel.send('Loop Disabled!');
+      guild.notify = false;
+      message.channel.send('Notification Disabled!');
     }
   }
 }

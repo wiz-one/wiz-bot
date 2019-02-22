@@ -1,8 +1,12 @@
-const fs = require("fs");
 const Discord = require("discord.js");
-const { reminderFilePath } = require("../../config.json");
+const { dbCredentials } = require("../../config.json");
+const pg = require('pg');
+const util = require('util');
 
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
+const updateQuery = "UPDATE reminders SET title = '%s', time = '%s', mention = '%s' WHERE id = ";
 
 module.exports = {
   name: 'edit-reminder',
@@ -26,8 +30,8 @@ module.exports = {
     var time, title;
     var author = message.author;
 
-    if (argument != "time" && argument != "title") {
-      return message.channel.send("Invalid argument. Argument must be either `time` or `title`.");
+    if (argument != "time" && argument != "title" && argument != "mention") {
+      return message.channel.send("Invalid argument. Argument must be either `time`, `title` or `mention`.");
     }
 
     var reminder = global.reminders.find((value, index, obj) => value.id == id);
@@ -57,14 +61,19 @@ module.exports = {
       editedReminder.title = title;
     }
 
+    if (argument == "mention") {
+      mention = args.slice(2).join(" ");
+      editedReminder.mention = mention;
+    }
+
+    save(editedReminder);
+
     var embedMessage = formEmbedMessage(editedReminder, author);
     message.channel.send(embedMessage)
 
     if (Date.parse(time) - Date.now() <= 30 * ONE_MIN) {
       return setReminder(editedReminder, message);
     }
-
-    save(reminder, editedReminder);
   }
 }
 
@@ -77,20 +86,9 @@ function formEmbedMessage(reminder, author) {
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .addField('ID', reminder.id)
     .addField('Time', date.toString())
+    .addField('Mention', reminder.mention)
     .setTimestamp();
   return embedMessage;
-}
-
-async function save(reminder, editedReminder) {
-  var file = __dirname + "/../../" + reminderFilePath;
-  var json = {};
-  var index = -1;
-
-  index = global.reminders.indexOf(reminder);
-
-  global.reminders.splice(index, 1, editedReminder);
-  json.reminders = global.reminders;
-  fs.writeFileSync(file, JSON.stringify(json));
 }
 
 function formReminder(reminder) {
@@ -108,7 +106,7 @@ async function setReminder(reminder, message) {
   console.log("Timeout: " + timeout);
   notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
-    message.channel.send("@everyone", embedMessage)
+    message.channel.send(reminder.mention, embedMessage)
     var index = global.reminders.indexOf(reminder);
     global.reminders.splice(index, 1);
    }, timeout);
@@ -116,4 +114,10 @@ async function setReminder(reminder, message) {
   global.notifications.delete(reminder.id);
   clearTimeout(removedNotification);
   global.notifications.set(reminder.id, notification);
+}
+
+async function save(editedReminder) {
+  var queryStr = util.format(updateQuery, editedReminder.title, editedReminder.time,
+      editedReminder.mention, editedReminder.id);
+  pool.query(queryStr);
 }

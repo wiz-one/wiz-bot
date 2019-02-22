@@ -1,6 +1,10 @@
 const Discord = require("discord.js");
-const fs = require("fs");
-const { reminderFilePath } = require("./../config.json");
+const { dbCredentials } = require("./../config.json");
+const pg = require('pg');
+
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
+const deleteQuery = "DELETE FROM reminders WHERE id = ";
 
 const ONE_MIN = 60000;
 
@@ -18,7 +22,8 @@ async function sendEmbedMessage(reminder, client) {
     .setDescription(reminder.title)
     .addField('Time', date.toString())
     .setTimestamp();
-  client.channels.find("id", reminder.channel_id).send("@everyone", embedMessage);
+  client.channels.find("id", reminder.channel_id)
+      .send(reminder.mention, embedMessage);
 }
 
 async function setReminder(client) {
@@ -29,7 +34,7 @@ async function setReminder(client) {
       notification = setTimeout(() => {
         sendEmbedMessage(reminder, client);
         global.reminders.splice(i, 1);
-        save(reminders);
+        save(reminder);
       }, timeout);
       i++;
       global.notifications.set(reminder.id, notification);
@@ -37,10 +42,6 @@ async function setReminder(client) {
   }
 }
 
-async function save() {
-  var file = __dirname + "/../" + reminderFilePath;
-  var json = {};
-  obj = JSON.parse(fs.readFileSync(file, 'utf8'));
-  json.reminders = global.reminders;
-  fs.writeFileSync(file, JSON.stringify(json));
+async function save(reminder) {
+  pool.query(deleteQuery + reminder.id);
 }

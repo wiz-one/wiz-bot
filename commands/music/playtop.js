@@ -1,7 +1,6 @@
-const ytdl = require('ytdl-core');
 const Music = require('../../modules/music.js');
 
-let { searchYoutube } = require('./../../modules/searchYoutube.js');
+let { searchYoutube } = require('../../modules/youtube.js');
 
 let dispatcher, videoUrl, youtube;
 
@@ -14,15 +13,22 @@ module.exports = {
       return message.reply('You need to join a voice channel first!');
     }
 
+    if (!args) {
+      return message.reply('You need to provide the youtube link or music name that you want to play!');
+    }
+
     const permissions = message.member.voiceChannel.permissionsFor(message.client.user);
+
 		if (!permissions.has('CONNECT')) {
-			return message.channel.send('I cannot connect to your voice channel, make sure I have the proper permissions!');
+			return message.reply('I cannot connect to your voice channel, make sure I have the proper permissions!');
 		}
 		if (!permissions.has('SPEAK')) {
-			return message.channel.send('I cannot speak in this voice channel, make sure I have the proper permissions!');
+			return message.reply('I cannot speak in this voice channel, make sure I have the proper permissions!');
 		}
 
     connection = message.guild.voiceConnection;
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id)
 
     var queryString = args.join(' ');
 
@@ -33,8 +39,8 @@ module.exports = {
 
     dispatcher = message.guild.voiceConnection.dispatcher;
 
-    if (!global.playlist) {
-      global.playlist = new Array();
+    if (!guild.playlist) {
+      guild.playlist = new Array();
     }
 
     videoUrl = queryString;

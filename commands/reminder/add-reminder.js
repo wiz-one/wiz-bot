@@ -1,8 +1,11 @@
-const fs = require("fs");
 const Discord = require("discord.js");
-const { reminderFilePath } = require("../../config.json");
+const { dbCredentials } = require("../../config.json");
+const pg = require('pg');
 
+dbCredentials.password = process.env.db_password;
+const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
+const insertQuery = "INSERT INTO reminders (title, time, requested_by, mention, channel_id, guild_id) VALUES ";
 
 module.exports = {
   name: 'remind',
@@ -19,10 +22,21 @@ module.exports = {
       return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
     }
     
-    var title = args.slice(3).join(" ");
+    
     var time = new Date(args[0] + " " + args[1] + " " + args[2]);
     var requester = message.author.username;
     var author = message.author;
+    var titleBegin = 3;
+    var mention = "@everyone";
+
+    if (args[3].match(/mention:/g)) {
+      titleBegin = 4;
+      mention = args[3].split(":")[1];
+    }
+
+    console.log(mention);
+
+    var title = args.slice(titleBegin).join(" ");
 
     if (time == "Invalid Date") {
       return message.channel.send("Invalid time set. " 
@@ -33,7 +47,9 @@ module.exports = {
       return message.channel.send("Invalid time set. Time must be set after the current time.");
     }
 
-    var obj = formJsonObj(title, time, requester, message.channel.id, message.channel.guild.id);
+    var obj = formJsonObj(title, time, requester, mention,
+        message.channel.id, message.channel.guild.id);
+        
     var embedMessage = formEmbedMessage(obj, author);
     message.channel.send(embedMessage)
 
@@ -45,7 +61,7 @@ module.exports = {
   }
 }
 
-function formJsonObj(title, time, requester, channel_id, guild_id) {
+function formJsonObj(title, time, requester, mention, channel_id, guild_id) {
   var id = 1;
 
   if (global.reminders.length) {
@@ -57,6 +73,7 @@ function formJsonObj(title, time, requester, channel_id, guild_id) {
     title: title,
     time: time,
     requested_by: requester,
+    mention: mention,
     channel_id: channel_id,
     guild_id: guild_id
   };
@@ -72,16 +89,9 @@ function formEmbedMessage(reminder, author) {
     .setAuthor(author.username, author.avatarURL, author.avatarURL)
     .addField('ID', reminder.id)
     .addField('Time', date.toString())
+    .addField('Mention', reminder.mention)
     .setTimestamp();
   return embedMessage;
-}
-
-async function save(reminder) {
-  var file = __dirname + "/../../" + reminderFilePath;
-  var json = {};
-  global.reminders.push(reminder);
-  json.reminders = global.reminders;
-  fs.writeFileSync(file, JSON.stringify(json));
 }
 
 function formReminder(reminder) {
@@ -98,10 +108,17 @@ async function setReminder(reminder, message) {
   timeout = Date.parse(reminder.time) - Date.now();
   notification = setTimeout(() => {
     var embedMessage = formReminder(reminder, message.guild.roles);
-    message.channel.send("@everyone", embedMessage);
+    message.channel.send(reminder.mention, embedMessage);
     var index = global.reminders.indexOf(reminder);
     global.reminders.splice(index, 1);
    }, timeout);
   global.reminders.push(reminder);
   global.notifications.set(reminder.id, notification);
+}
+
+async function save(reminder) {
+  var queryStr = `('${ reminder.title }', '${ reminder.time }', '${ reminder.requested_by }',`
+  + `'${ reminder.mention }', '${ reminder.channel_id }', '${ reminder.guild_id }')`;
+  global.reminders.push(reminder);
+  pool.query(insertQuery + queryStr);
 }

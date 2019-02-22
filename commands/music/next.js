@@ -8,12 +8,14 @@ module.exports = {
     }
 
     connection = message.guild.voiceConnection;
+    let guild_id = message.guild.id;
+    let guild = global.guilds.get(guild_id);
 
     if (!connection) {
-      message.reply('I am not connected to the channel!');
+      return message.reply('I am not connected to the channel!');
     }
 
-    if (global.playlist.length || global.loop) {
+    if (guild.playlist.length) {
       connection.dispatcher.end();
       message.reply('Next song will be played!');
     } else {

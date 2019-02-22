@@ -1,6 +1,6 @@
-const Youtube = require('./../modules/music');
+const music = require('./../modules/music');
 
-let { searchYoutube } = require('./../modules/searchYoutube.js');
+let { searchYoutube } = require('./../modules/youtube.js');
 
 module.exports = {
   name: 'youtube',
@@ -11,9 +11,7 @@ module.exports = {
 
     var queryString = args.join(' ');
 
-    let youtube = new Youtube();
-
-    youtube.on("display", (url) => {
+    music.youtube.on("display", (url) => {
       message.channel.send(url);
     });
 
