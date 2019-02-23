@@ -47,9 +47,9 @@ function formEmbedMessage(reminder) {
 function removeReminder(id) {
   let removingReminder = global.reminders.find(reminder => reminder.id == id);
   let removingReminderIndex = global.reminders.indexOf(removingReminder);
-  global.reminders.splice(removingReminderIndex, 1);
   clearTimeout(global.notifications.get(removingReminder.id));
   global.notifications.delete(removingReminder.id);
+  global.reminders.splice(removingReminderIndex, 1);
   return removingReminder;
 }
 

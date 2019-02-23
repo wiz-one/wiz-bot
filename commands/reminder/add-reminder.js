@@ -11,7 +11,11 @@ const insertQuery = "INSERT INTO reminders (title, time, requested_by, mention, 
 
 module.exports = {
   name: 'remind',
-  description: 'Add a reminder to notify the members in the channnel',
+  description: 'Add a reminder to notify the members in the channnel.\n'
+    + 'Format: /remind <yyyy-MM-dd hh:mm> <timezone> (mention:@role) <title>\n'
+    + 'Arguments in <> are compulsory and () are optional\n'
+    + 'Note: without specifying mention, @everyone will be tagged\n',
+  usage: 'remind 2020-01-01 22:00 mention:@admin do something',
   async execute(message, args) {
 
     console.log("Arguments received: " + args.join(" "));
@@ -34,8 +38,6 @@ module.exports = {
       titleBegin = 4;
       mention = args[3].split(":")[1];
     }
-
-    console.log(mention);
 
     var title = args.slice(titleBegin).join(" ");
 
@@ -62,7 +64,8 @@ module.exports = {
   }
 }
 
-function formJsonObj(title, time, requester, mention, channel_id, guild_id) {
+function formJsonObj(title, time, requester, mention, channel_id, 
+      guild_id) {
   var data = {
     id: 0,
     title: title,
@@ -105,15 +108,16 @@ async function setReminder(reminder, message) {
     var embedMessage = formReminder(reminder, message.guild.roles);
     message.channel.send(reminder.mention, embedMessage);
     var index = global.reminders.indexOf(reminder);
+    global.notifications.delete(reminder.id);
     global.reminders.splice(index, 1);
    }, timeout);
-  global.reminders.push(reminder);
   global.notifications.set(reminder.id, notification);
 }
 
 async function save(reminder) {
-  var queryStr = util.format(insertQuery, reminder.title, reminder.time, reminder.requested_by, reminder.mention, 
-      reminder.channel_id, reminder.guild_id);
+  var queryStr = util.format(insertQuery, reminder.title, reminder.time,
+        reminder.requested_by, reminder.mention, reminder.channel_id, 
+        reminder.guild_id);
   await pool.query(queryStr).then((results) => {
       reminder.id = results.rows[0].id;
   });

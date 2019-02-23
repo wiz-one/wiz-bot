@@ -27,18 +27,18 @@ async function sendEmbedMessage(reminder, client) {
 }
 
 async function setReminder(client) {
-  var i = 0;
   for (reminder of global.reminders) {
     let timeout = Date.parse(reminder.time) - Date.now();
-    if (timeout <= 30 * ONE_MIN && timeout >= 0) {
+    if (timeout <= 30 * ONE_MIN && timeout > 0) {
       notification = setTimeout(() => {
+        var index = global.reminders.indexOf(reminder);
         sendEmbedMessage(reminder, client);
+        global.notifications.delete(reminder.id);
         save(reminder.id);
-        global.reminders.splice(i, 1);
+        global.reminders.splice(index, 1);
       }, timeout);
       global.notifications.set(reminder.id, notification);
     }
-    i++;
   }
 }
 
