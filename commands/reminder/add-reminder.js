@@ -25,7 +25,8 @@ module.exports = {
     }
 
     if (args.length < 3) {
-      return message.channel.send("You didn't provide either the date, time or the title of the reminder.");
+      return message.channel.send("You didn't provide either the date," 
+          + " time or the title of the reminder.");
     }
     
     var time = new Date(args[0] + " " + args[1] + " " + args[2]);
