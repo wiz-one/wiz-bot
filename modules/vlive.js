@@ -446,18 +446,24 @@ async function getVideoId(videoSeq) {
 
         await browser.close();
 
-        var txt = elements[8];
+        //console.log('elements -------->' + elements);
+        var txt = elements.join("");
 
         txt = txt.replace(/(\r\n\t|\n|\r\t|\s+)/g, "");
+        //console.log('txt -------->' + txt);
 
         const start = txt.indexOf('vlive.video.init(') + 17;
         const end = txt.indexOf(');', start);
 
         txt = txt.substr(start, end - start);
         var array = txt.split(',');
+        //console.log('Array --------> ' + array);
 
         videoId = array[8].slice(1, -1);
         key = array[9].slice(1, -1);
+
+        //console.log('videoId --------> ' + videoId);
+        //console.log('key --------> ' + key);
 
         resolve([key, videoId]);
       })
