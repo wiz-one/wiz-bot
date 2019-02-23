@@ -6,7 +6,7 @@ const util = require('util');
 dbCredentials.password = process.env.db_password;
 const pool = new pg.Pool(dbCredentials);
 const ONE_MIN = 60000;
-const updateQuery = "UPDATE reminders SET title = '%s', time = '%s', mention = '%s' WHERE id = ";
+const updateQuery = "UPDATE reminders SET title = '%s', time = '%s', mention = '%s' WHERE id = %d";
 
 module.exports = {
   name: 'edit-reminder',
