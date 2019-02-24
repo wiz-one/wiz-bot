@@ -18,19 +18,20 @@ module.exports = {
     }
 
     if(onlyEmoji(args[0]).length !== 0){
-        var emojiUnicode = emojis.unicode(args[0]);
-        var emojiCodePoint = twemoji.convert.toCodePoint(emojiUnicode);
-        file = standardEmojiUrl + emojiCodePoint + ".png";
-        message.channel.send(requestString + message.author.username, { files: [file] });
+      var emojiUnicode = emojis.unicode(args[0]);
+      var emojiCodePoint = twemoji.convert.toCodePoint(emojiUnicode);
+      file = standardEmojiUrl + emojiCodePoint + ".png";
     } else {
       const emoji = args[0].substr(2, args[0].length - 2).split(":");
       const emojiId = emoji[1].slice(0,emoji[1].length-1);
       
-      if (message.guild.emojis.get(emojiId)) {
-        file = customEmojiUrl + emojiId;
-        message.channel.send(requestString + message.author.username + "\n" + file);
+      if (!message.guild.emojis.get(emojiId)) {
+        return message.channel.send("Invalid emoji");
       }
+
+      file = customEmojiUrl + emojiId + ".png";
     }
+    message.channel.send(requestString + message.author.username, {files: [file]});
     message.delete();
   }
 }
