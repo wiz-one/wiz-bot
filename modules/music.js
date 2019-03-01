@@ -11,6 +11,10 @@ class Youtube extends EventEmitter {}
 
 youtube = new Youtube();
 
+youtube.on("display", (url, message) => {
+  message.channel.send(url);
+});
+
 youtube.on("play", (url, message) => {
       let guild_id = message.guild.id;
       let guild = global.guilds.get(guild_id);

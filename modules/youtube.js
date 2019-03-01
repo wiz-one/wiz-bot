@@ -150,7 +150,8 @@ function searchListByKeyword(auth, requestData, message, event) {
       for (results of response.data.items) {
         if (results.id.kind == 'youtube#video') {
           videoId = results.id.videoId;
-          return youtube.emit(event, youtubeUrl + videoId, message);
+          youtube.emit(event, youtubeUrl + videoId, message);
+          break;
         }
       }
     });
