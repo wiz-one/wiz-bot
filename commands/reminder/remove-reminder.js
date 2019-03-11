@@ -29,7 +29,7 @@ module.exports = {
 
     save(id);
 
-    var embedMessage = formEmbedMessage(result);
+    var embedMessage = formEmbedMessage(removingReminder);
     message.channel.send(embedMessage)
   }
 }
