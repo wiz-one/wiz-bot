@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
 const { dbCredentials } = require("./../config.json");
 const pg = require('pg');
+const https = require("https");
 
 dbCredentials.password = process.env.db_password;
 const pool = new pg.Pool(dbCredentials);
@@ -19,6 +20,10 @@ module.exports = (client = Discord.Client) => {
     require("./../modules/reminder.js")(client);
 
     console.log("Initialising");
+
+    setInterval(function() {
+          https.get("https://wiz-bot-nodejs.herokuapp.com/");
+      }, 300000);
 
     global.notifications = new Map();
 
