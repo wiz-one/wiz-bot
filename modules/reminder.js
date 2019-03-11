@@ -17,11 +17,11 @@ module.exports = (client = Discord.Client) => {
 async function sendEmbedMessage(reminder, client) {
   var date = new Date(reminder.time);
   const embedMessage = new Discord.RichEmbed()
-    .setColor('#da004e')
-    .setTitle('Reminder')
-    .setDescription(reminder.title)
-    .addField('Time', date.toString())
-    .setTimestamp();
+      .setColor('#da004e')
+      .setTitle('Reminder')
+      .setDescription(reminder.title)
+      .addField('Time', date.toString())
+      .setTimestamp();
   client.channels.get(reminder.channel_id)
       .send(reminder.mention, embedMessage);
 }
@@ -30,16 +30,23 @@ async function setReminder(client) {
   for (reminder of global.reminders) {
     let timeout = Date.parse(reminder.time) - Date.now();
     if (timeout <= 30 * ONE_MIN && timeout > 0) {
-      notification = setTimeout(() => {
-        var index = global.reminders.indexOf(reminder);
+      notification = setTimeout((reminder) => {
+        console.log(reminder);
         sendEmbedMessage(reminder, client);
         global.notifications.delete(reminder.id);
         save(reminder.id);
-        global.reminders.splice(index, 1);
-      }, timeout);
+        let i = findReminderIndex(reminder.id);
+        global.reminders.splice(i, 1);
+      }, timeout, reminder);
       global.notifications.set(reminder.id, notification);
     }
   }
+}
+
+function findReminderIndex(id) {
+  let removingReminder = global.reminders.find(reminder => reminder.id == id);
+  let removingReminderIndex = global.reminders.indexOf(removingReminder);
+  return removingReminderIndex;
 }
 
 async function save(id) {
