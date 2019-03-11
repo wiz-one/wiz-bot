@@ -19,11 +19,13 @@ module.exports = {
 
     var id = args[0];
 
-    var result = removeReminder(id);
+    let removingReminder = findReminder(id);
 
-    if (result == undefined) {
+    if (removingReminder == undefined) {
       return message.channel.send("Index not found!");
     }
+
+    removeReminder(removingReminder);
 
     save(id);
 
@@ -44,13 +46,16 @@ function formEmbedMessage(reminder) {
   return embedMessage;
 }
 
-function removeReminder(id) {
+function findReminder(id) {
   let removingReminder = global.reminders.find(reminder => reminder.id == id);
+  return removingReminder;
+}
+
+function removeReminder(removingReminder) {
   let removingReminderIndex = global.reminders.indexOf(removingReminder);
   clearTimeout(global.notifications.get(removingReminder.id));
   global.notifications.delete(removingReminder.id);
   global.reminders.splice(removingReminderIndex, 1);
-  return removingReminder;
 }
 
 async function save(id) {
