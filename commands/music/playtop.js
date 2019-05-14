@@ -7,6 +7,10 @@ let dispatcher, videoUrl, youtube;
 module.exports = {
   name: 'playtop',
   description: 'Request the bot to play a song as the next song in the voice channel.',
+  usage: '<song name or youtube video link>\n'
+  + '**Examples**:\n'
+  + 'IZ*ONE Violeta\n'
+  + 'https://www.youtube.com/watch?v=6eEZ7DJMzuk\n',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {
