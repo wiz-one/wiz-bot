@@ -12,7 +12,6 @@ require("./handlers/handleMessage.js")(client);
 require("./handlers/initialise.js")(client);
 require('./handlers/initVlive.js')(client);
 require('./modules/getCommandFiles.js')(client);
-require("./newrelic");
 
 client.commands = getCommandFiles('./commands', '.js');
 
