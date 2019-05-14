@@ -8,7 +8,9 @@ const deleteQuery = "DELETE FROM reminders WHERE id = ";
 
 module.exports = {
   name: 'remove-reminder',
-  description: 'Remove a reminder based on the id given',
+  description: 'Remove a reminder based on the id given\n',
+  usage: '<id>\n'
+  + '**Example:** `22`\n',
   async execute(message, args) {
 
     console.log("Arguments received: " + args.join(" "));

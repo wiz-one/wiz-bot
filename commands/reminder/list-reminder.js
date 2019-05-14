@@ -3,6 +3,7 @@ const Discord = require("discord.js");
 module.exports = {
   name: 'list-reminder',
   description: 'List reminders that are associated with the server.',
+  usage: '',
   async execute(message, args) {
     console.log("Arguments received: " + args.join(" "));
 
