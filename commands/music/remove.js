@@ -4,6 +4,8 @@ const Discord = require("discord.js");
 module.exports = {
   name: 'remove',
   description: 'Request the bot to remove a song with given position in the playlist.',
+  usage: '<index of the song in the queue>\n'
+  + '**Example**: 4\n',
   async execute(message, args) {
 
     if (!message.member.voiceChannel) {

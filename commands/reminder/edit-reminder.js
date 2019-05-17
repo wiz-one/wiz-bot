@@ -10,7 +10,10 @@ const updateQuery = "UPDATE reminders SET title = '%s', time = '%s', mention = '
 
 module.exports = {
   name: 'edit-reminder',
-  description: 'Edit an existing reminder set.',
+  description: 'Edit a reminder to make updates in its time, title or mention.\n',
+  usage: '`<id>` `<argument>` `<new value>`\n'
+    + '**Example:** `1 time 2030-12-31 23:59 GMT+8`\n'
+    + '**Note:** `argument` can only be either `time`, `title` or `mention`.\n',
   async execute(message, args) {
 
     console.log("Arguments received: " + args.join(" "));
@@ -22,7 +25,7 @@ module.exports = {
     if (args.length < 3) {
       return message.channel.send("You didn't provide the correct arguments.\n"
           + "Format: /edit-reminder <id> <argument> <new value>\n"
-          + "Note: argument must be either `time` or `title`.");
+          + "Note: argument must be either `mention`, `time` or `title`.");
     }
 
     var id = args[0];

@@ -11,11 +11,11 @@ const insertQuery = "INSERT INTO reminders (title, time, requested_by, mention, 
 
 module.exports = {
   name: 'remind',
-  description: 'Add a reminder to notify the members in the channnel.\n'
-    + 'Format: /remind <yyyy-MM-dd hh:mm> <timezone> (mention:@role) <title>\n'
-    + 'Arguments in <> are compulsory and () are optional\n'
-    + 'Note: without specifying mention, @everyone will be tagged\n',
-  usage: 'remind 2020-01-01 22:00 mention:@admin do something',
+  description: 'Add a reminder to notify the members in the channnel.',
+  usage: '`<yyyy-MM-dd hh:mm>` `<timezone>` `(mention:@role)` `<title>`\n'
+  + 'Arguments in <> are compulsory and () are optional\n'
+  + '**Example:** `2020-01-01 22:00 GMT+8 mention:@admin do something`\n'
+  + '**Note:** without specifying `mention`, `@everyone` will be tagged\n',
   async execute(message, args) {
 
     console.log("Arguments received: " + args.join(" "));
