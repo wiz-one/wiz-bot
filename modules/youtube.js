@@ -37,7 +37,11 @@ function initialise() {
     var content = fs.readFileSync(__dirname + '/../client_secret.json');
   } catch (err) {
     console.log('Error loading client secret file: ' + err);
-    return;
+    if (process.env.youtube_client_secret) {
+      content = process.env.youtube_client_secret;
+    } else {
+      return;
+    }
   }
 
   // Authorize a client with the loaded credentials, then call the YouTube API.
@@ -63,10 +67,14 @@ function authorize(credentials, requestData, callback) {
   try {
     token = fs.readFileSync(TOKEN_PATH);
   } catch (err) {
-    getNewToken(oauth2Client, requestData, callback);
-    token = fs.readFileSync(TOKEN_PATH);
+    if (process.env.youtube_token) {
+      token = process.env.youtube_token;
+    } else {
+      getNewToken(oauth2Client, requestData, callback);
+      token = fs.readFileSync(TOKEN_PATH);
+    }
   }
-
+  
   oauth2Client.credentials = JSON.parse(token);
   return oauth2Client;
   // callback(oauth2Client, requestData);
