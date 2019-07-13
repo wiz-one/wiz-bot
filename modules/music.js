@@ -2,8 +2,8 @@ const EventEmitter = require('events');
 const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 
-const streamOptions = { seek: 0, volume: 1, highWaterMark: 1 };
-const downloadOptions = { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 };
+const streamOptions = { seek: 0, volume: 1 };
+const downloadOptions = { filter: 'audioonly', quality: 'highestaudio' };
 
 let dispatcher;
 
@@ -41,21 +41,22 @@ module.exports = {
   play(song, message) {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
-
+    
     const stream = ytdl(song, downloadOptions);
-    ytdl.getBasicInfo(song)
-      .then((info) => {
+    ytdl.getBasicInfo(song, (err, info) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        
         if (guild.notify) {
           var embedMessage = formEmbedMessage(message.author, info, true, guild.playlist);
           message.channel.send(embedMessage);
         }
         guild.currentPlaying = { url:song, title:info.title, author:message.author };
-      })
-      .catch((err) => {
-        return console.log(err);
       });
-    
-    connection = message.guild.voiceConnection;
+
+    let connection = message.guild.voiceConnection;
     guild.dispatcher = connection.playStream(stream, streamOptions);
   
     guild.dispatcher.on('end', () => {
@@ -73,17 +74,18 @@ module.exports = {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
 
-    ytdl.getBasicInfo(videoUrl)
-      .then((info) => {
+    ytdl.getBasicInfo(videoUrl, (err, info) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
         guild.playlist.push({ url:videoUrl, title:info.title, author:message.author });
 
         if (!isPlayist) {
           var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
           message.channel.send(embedMessage);
         }
-      })
-      .catch((err) => {
-        return console.log(err);
       });
     
   },
@@ -91,14 +93,15 @@ module.exports = {
     let guild_id = message.guild.id;
     let guild = global.guilds.get(guild_id);
 
-    ytdl.getBasicInfo(videoUrl)
-      .then((info) => {
+    ytdl.getBasicInfo(videoUrl, (err, info) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+
         guild.playlist.unshift({ url:videoUrl, title:info.title, author:message.author });
         var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
         message.channel.send(embedMessage);
-      })
-      .catch((err) => {
-        return console.log(err);
       });
   }
 }
@@ -148,7 +151,6 @@ function formEmbedMessage(author, videoInfo, nowPlaying, playlist) {
 }
 
 function getThumbnail(videoInfo) {
-  var regex = /default/gi;
-  let thumbnail = videoInfo.thumbnail_url.replace(regex, "hqdefault");
-  return thumbnail;
+  let thumbnail = videoInfo.player_response.videoDetails.thumbnail.thumbnails.pop();
+  return thumbnail.url;
 }
