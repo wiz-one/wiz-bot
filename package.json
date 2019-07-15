@@ -11,6 +11,7 @@
     "emojis": "^1.0.10",
     "erlpack": "github:discordapp/erlpack",
     "express": "^4.17.1",
+    "ffmpeg": "0.0.4",
     "google-auth-library": "^2.0.2",
     "googleapis": "^36.0.0",
     "libsodium-wrappers": "^0.7.4",
