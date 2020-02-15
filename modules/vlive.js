@@ -117,6 +117,13 @@ module.exports = (client = Discord.Client) => {
 
         if (!newVid.some(e => e.id === videoSeq) && videoType === 'VOD') {
 
+          const queryConfig1 = {
+            text: 'INSERT INTO newvideo VALUES($1, $2);',
+            values: [videoSeq, `${uploadDateTime}`]
+          };
+    
+          pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
+
           newVid.push({
             id: videoSeq,
             time: uploadDateTime
@@ -582,13 +589,6 @@ function editMsgWithSubAndReso(message, msgEmbed, video) {
 
       getData(videoInfoApi).then((result) => {
         getSubAndReso(result).then(([engSub, highestReso]) => {
-
-          const queryConfig1 = {
-            text: 'INSERT INTO newvideo VALUES($1, $2);',
-            values: [videoSeq, `${uploadDateTime}`]
-          };
-
-          pool.query(queryConfig1).catch(err => console.log('Query to newvideo: ' + err));
 
           console.log('Found Subs and Resolution for new Video! =>');
           console.log('Id: ' + videoSeq);
