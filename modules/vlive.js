@@ -627,7 +627,7 @@ function editMsgWithSubAndReso(message, msgEmbed, video) {
           }
         }).catch(e => console.log(e + videoSeq));
       }).catch(e => console.log(e + videoSeq));
-    });
+    }).catch(e => console.log(e + videoSeq));
 }
 
 function fetchEmbeded(discordChannel, url) {

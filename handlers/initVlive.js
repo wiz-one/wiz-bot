@@ -8,7 +8,7 @@ dbCredentials.password = process.env.db_password;
 //Base variables
 const appId = '8c6cc7b45d2568fb668be6e05b6e5a3b';
 const channelCode = 'C1B7AF'; //IZONE: C1B7AF 
-const maxNumOfRows = 10;
+const maxNumOfRows = 4;
 const pool = new pg.Pool(dbCredentials); //Postgresql connection
 
 //Model variables
