@@ -4,6 +4,7 @@
   "description": "A Discord bot!",
   "main": "bot.js",
   "dependencies": {
+    "@discordjs/opus": "github:discordjs/opus",
     "@discordjs/uws": "^10.149.0",
     "bufferutil": "^4.0.1",
     "discord.js": "^11.5.1",
@@ -11,9 +12,9 @@
     "emojis": "^1.0.10",
     "erlpack": "github:discordapp/erlpack",
     "express": "^4.17.1",
-    "ffmpeg-static": "^2.5.0",
+    "ffmpeg-static": "^4.0.1",
     "google-auth-library": "^2.0.2",
-    "googleapis": "^36.0.0",
+    "googleapis": "^47.0.0",
     "libsodium-wrappers": "^0.7.4",
     "moment-timezone": "^0.5.23",
     "node-opus": "^0.3.2",
@@ -23,7 +24,7 @@
     "puppeteer": "^1.11.0",
     "request": "^2.88.0",
     "twemoji": "^11.3.0",
-    "ytdl-core": "^0.29.3"
+    "ytdl-core": "^1.0.7"
   },
   "engines": {
     "node": "8.14.0",
