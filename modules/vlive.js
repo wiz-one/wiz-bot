@@ -435,6 +435,9 @@ async function getVideoId(videoSeq) {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox', `--proxy-server=${proxy}`]
+    }).catch(async (e) => {
+      console.log('Browser Error: ' + e + ' => ' + videoSeq);
+      reject(e);
     });
 
     const page = await browser.newPage();
