@@ -20,11 +20,17 @@ client.once('ready', async () => {
   initialise();
 
   const VLIVE_CHANNEL = client.channels.find(channel => channel.name === 'vlive');
+  const PM_CHANNEL = client.channels.find(channel => channel.name === 'izone-pm');
 
   if (VLIVE_CHANNEL) {
     await initVlive();
     require('./modules/vlive.js')(client);
     setInterval(() => vlive(VLIVE_CHANNEL), 5000);
+  } 
+
+  if (PM_CHANNEL) {
+    require('./modules/twitterPm.js')(client);
+    setInterval(() => twitterPm(PM_CHANNEL), 5000);
   } 
 
   console.log('Ready!');

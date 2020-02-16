@@ -24,7 +24,8 @@
     "puppeteer": "^1.11.0",
     "request": "^2.88.0",
     "twemoji": "^11.3.0",
-    "ytdl-core": "^1.0.7"
+    "ytdl-core": "^1.0.7",
+    "twitter": "^1.7.1"
   },
   "engines": {
     "node": "12.9.1",
