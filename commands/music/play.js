@@ -1,4 +1,5 @@
 const Music = require('../../modules/music.js');
+const prefix = require('../../config.json').prefix;
 
 let { searchVideo, getPlaylist } = require('../../modules/youtube.js');
 
@@ -48,7 +49,8 @@ module.exports = {
     if (queryString.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)) {
       let playlistId = queryString.split("=")[1];
       await getPlaylist(playlistId, message, "playPlaylist");
-      return message.channel.send(`✅ Playlist has been added to the queue!`);
+      return message.channel.send(`✅ Playlist has been added to the queue! You can type \`` 
+          + prefix + `queue\` to check the queue.`);
 		}
 
     if (!queryString.match(/^https?:\/\/(www.youtube.com|youtube.com)/)) {

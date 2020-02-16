@@ -82,7 +82,7 @@ module.exports = {
 
         guild.playlist.push({ url:videoUrl, title:info.title, author:message.author });
 
-        if (!isPlayist) {
+        if (!isPlayist && guild.notify) {
           var embedMessage = formEmbedMessage(message.author, info, false, guild.playlist);
           message.channel.send(embedMessage);
         }
