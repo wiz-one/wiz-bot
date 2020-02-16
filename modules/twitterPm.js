@@ -7,8 +7,9 @@ var twitter_client = new Twitter({
   consumer_secret: twitter_info.consumer_secret,
   access_token_key: twitter_info.access_token_key,
   access_token_secret: twitter_info.access_token_secret,
-  count_limit: twitter_info.count
 });
+
+var count_limit = twitter_info.count;
 
 var tweetedId = [];
 var members = ['wonyo','wonyoung','sakura','kkura',
