@@ -21,10 +21,6 @@ module.exports = (client = Discord.Client) => {
 
     console.log("Initialising");
 
-    setInterval(function() {
-          https.get("https://wiz-bot-nodejs.herokuapp.com/");
-      }, 300000);
-
     global.notifications = new Map();
 
     initGuildsVariables(client).then((results) => {
