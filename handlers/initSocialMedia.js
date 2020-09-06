@@ -32,6 +32,11 @@ module.exports = (client = Discord.Client) => {
       proxies, count,
       channelCode, channelId, channelName, channelProfileImage, channelBoardId, channelUrl,
     }
+  },
+  initTwitterPm = async function initTwitterPm() {
+    await readFromDb('twitterpm').then(result => global.tweet = result.map(e => e.id));
+    console.log('\nTwitter PM Information => ');
+    console.log('Tweeted Id: ' + JSON.stringify(global.tweet))
   }
 }
 
